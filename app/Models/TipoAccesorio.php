@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Equipo;
 
 class TipoAccesorio extends Model
 {
@@ -17,4 +18,14 @@ class TipoAccesorio extends Model
     ];
 
     public $timestamps = false;
+
+
+    public function equipos(){
+        return $this->belongsToMany(
+            Equipo::class,
+            'equipos_accesorios',
+            'id_accesorio',
+            'id_equipo'
+           );
+    }
 }

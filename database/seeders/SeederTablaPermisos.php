@@ -18,8 +18,11 @@ class SeederTablaPermisos extends Seeder
     public function run()
     {
         $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Cliente']);
+        $role3 = Role::create(['name' => 'Vendedor']);
+        $role4 = Role::create(['name' => 'Tecnico']);
 
-        Permission::create(['name' => 'ver-usuario'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'ver-usuario'])->syncRoles([$role1, $role2, $role3, $role4]); 
         Permission::create(['name' => 'crear-usuario'])->syncRoles([$role1]); 
         Permission::create(['name' => 'editar-usuario'])->syncRoles([$role1]); 
         Permission::create(['name' => 'borrar-usuario'])->syncRoles([$role1]); 
@@ -51,6 +54,20 @@ class SeederTablaPermisos extends Seeder
         Permission::create(['name' => 'crear-servicios'])->syncRoles([$role1]); 
         Permission::create(['name' => 'editar-servicios'])->syncRoles([$role1]); 
         Permission::create(['name' => 'borrar-servicios'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'ver-estantes'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'crear-estantes'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'editar-estantes'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'borrar-estantes'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'secciones-estante'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'ver-seccionesestante'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'crear-seccionesestante'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'editar-seccionesestante'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'borrar-seccionesestante'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'ver-equipos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'crear-equipos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'editar-equipos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'borrar-equipos'])->syncRoles([$role1]); 
+
 
     }
 }

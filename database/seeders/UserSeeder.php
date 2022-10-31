@@ -15,12 +15,27 @@ class UserSeeder extends Seeder
     public function run()
     {
         User::create([                  //Definimos nuestra credencial para ingresar al sistema.
-            'name' => 'Compinche',
-            'email' => 'compincheapo@gmail.com',
+            'name' => 'Fernando',
+            'lastname' => 'Nahirñak',
+            'username' => 'gerente',
+            'email' => 'fer.nahirnak@gmail.com',
             'password' => bcrypt('compinche')
-
         ])->assignRole('Admin');
         
-        User::factory(99)->create(); //Crea 99 usuarios en la BD.
+        for($i = 1; $i <= 10; $i++){
+            $user = User::factory()->create();
+            $user->assignRole('Cliente');
+        }
+
+        for($i = 1; $i <= 5; $i++){
+            $user = User::factory()->create();
+            $user->assignRole('Vendedor');
+        }
+
+        for($i = 1; $i <= 5; $i++){
+            $user = User::factory()->create();
+            $user->assignRole('Tecnico');
+        }
+
     }
 }

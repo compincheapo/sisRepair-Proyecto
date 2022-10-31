@@ -26,8 +26,20 @@
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-12 col-md-12">
                                         <div class="form-group">
-                                            <label for="name">Nombre</label>
+                                            <label for="name">Nombres</label>
                                             {!! Form::text('name', null, array('class' => 'form-control'))!!}
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12">
+                                        <div class="form-group">
+                                            <label for="name">Apellidos</label>
+                                            {!! Form::text('lastname', null, array('class' => 'form-control'))!!}
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12">
+                                        <div class="form-group">
+                                            <label for="name">Username</label>
+                                            {!! Form::text('username', null, array('class' => 'form-control'))!!}
                                         </div>
                                     </div>
                                     <div class="col-xs-12 col-sm-12 col-md-12">
@@ -51,7 +63,7 @@
                                     <div class="col-xs-12 col-sm-12 col-md-12">
                                         <div class="form-group">
                                             <label for="">Roles</label>
-                                            {!! Form::select('roles[]', $roles, [], array('class' => 'form-control'))!!}
+                                            {!! Form::select('roles[]', $roles, $userRole, array('class' => 'form-control'))!!}
                                         </div>
                                     </div>
                                     <div class="col-xs-12 col-sm-12 col-md-12">

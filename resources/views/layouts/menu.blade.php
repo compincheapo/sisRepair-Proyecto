@@ -117,10 +117,12 @@ body.sidebar-mini .main-sidebar:after {
 <li id="drop-2" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-user"></i><span>Módulo Clientes</span></a>
         <ul id="dropmenu-2" class="dropdown-menu">
+            @can('ver-equipos')
             <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Gestión Equipos Cliente </a> 
+            <li class="{{ Request::is('equipos') ? 'active' : '' }}">
+                <a href="{{ url('/equipos') }}" class="primario">Gestión Equipos Cliente </a> 
             </li>
+            @endcan
             <hr style="margin-top:1px; margin-bottom:1px">
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
@@ -151,14 +153,14 @@ body.sidebar-mini .main-sidebar:after {
 <li id="drop-4" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-diagnoses"></i><span>Módulo Diagnóstico</span></a>
         <ul id="dropmenu-4" class="dropdown-menu">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Asignar Diagnóstico</a>
+            <li class="{{ Request::is('/asignacion/diagnostico') ? 'active' : '' }}">
+                <a href="{{ url('/asignacion/diagnostico') }}" class="primario">Asignar Diagnóstico</a>
             </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Asignaciones Realizadas</a>
+            <li class="{{ Request::is('asignacion/diagnosticosasignados') ? 'active' : '' }}">
+                <a href="{{ url('asignacion/diagnosticosasignados') }}" class="primario">Asignaciones Realizadas</a>
             </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Mis Asignaciones</a>
+            <li class="{{ Request::is('/asignacion/vermisdiagnosticosasignados') ? 'active' : '' }}">
+                <a href="{{ url('/asignacion/vermisdiagnosticosasignados') }}" class="primario">Mis Asignaciones</a>
             </li>
         </ul>
 </li>
@@ -177,12 +179,14 @@ body.sidebar-mini .main-sidebar:after {
             </li>
         </ul>
 </li>
-<li id="drop-6" class="dropdown">
+<li id="drop-6" class="dropdown pepe">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-cubes"></i><span>Módulo Inventario</span></a>
         <ul id="dropmenu-6" class="dropdown-menu">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Gestionar Estantes</a>
+            @can('ver-estantes')
+            <li class="{{ Request::is('estantes') ? 'active' : '' }}">
+                <a href="{{ url('/estantes') }}" class="primario">Gestionar Estantes</a>
             </li>
+            @endcan
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario">Registrar Abandono</a>
             </li>
@@ -203,10 +207,10 @@ body.sidebar-mini .main-sidebar:after {
 
         $dropmenu1 = document.getElementById("dropmenu-1");
         $drop1 = document.getElementById("drop-1");
-        $dropmenu2 = document.getElementById("dropmenu-2");
-        $drop2 = document.getElementById("drop-2");
+        $dropmenu6 = document.getElementById("dropmenu-6");
+        $drop6 = document.getElementById("drop-6");
         
-        console.log($drop1.classList);
+        //console.log($drop1.classList);
         
         if ($dropmenu1.hasChildNodes()) {
             var children1 = $dropmenu1.childNodes;
@@ -215,23 +219,25 @@ body.sidebar-mini .main-sidebar:after {
                 if(typeof(children1[i].classList) != 'undefined'){
                     if(children1[i].classList.contains("active")){
                         $drop1.classList.add("active");
-                        console.log($dropmenu1.style.display);
+                        //console.log($dropmenu1.style.display);
                     }   
                 }
             }
         }
-        
-        if ($dropmenu2.hasChildNodes()) {
-        var children2 = $dropmenu2.childNodes;
-        for (var i = 0; i < children2.length; i++) {
 
-            if(typeof(children2[i].classList) != 'undefined'){
-                if(children2[i].classList.contains("active")){
-                    $drop2.classList.add("active");
-                }   
+        if ($dropmenu6.hasChildNodes()) {
+            var children6 = $dropmenu6.childNodes;
+            for (var i = 0; i < children6.length; i++) {
+                
+                if(typeof(children6[i].classList) != 'undefined'){
+                    if(children6[i].classList.contains("active")){
+                        $drop6.classList.add("active");
+                        //console.log($dropmenu6.style.display);
+                    }   
+                }
             }
         }
-}
+
 
 });
 </script>
@@ -258,7 +264,7 @@ body.sidebar-mini .main-sidebar:after {
          
         //Obtenemos un segmento de la ruta actual (por ej, 'usuarios', que es parte de localhost:8000/usuarios).
         $segmento = "<?php echo Request::segment(1)?>"; 
-        console.log($segmento);
+        //console.log($segmento);
 
 
         $hijos = this.children[1].children;
@@ -270,7 +276,7 @@ body.sidebar-mini .main-sidebar:after {
             if ($hijo.children[0] != undefined){
                 $split = $hijos[i].children[0].href.split("/")[3];
                 if($split === $segmento && $segmento != ""){
-                console.log($hijo.classList);
+                //console.log($hijo.classList);
                 $hijo.children[0].setAttribute( 'style', 'color: #ffa426 !important');
             }
             }
@@ -280,7 +286,7 @@ body.sidebar-mini .main-sidebar:after {
 
     var hamburguer = function(){
         var $dropdowns = document.querySelectorAll('[id^="drop-"]');
-        console.log($dropdowns);
+        //console.log($dropdowns);
 
         for(i=0; i < $dropdowns.length; i++){
             if($dropdowns[i].classList.contains("active")){
