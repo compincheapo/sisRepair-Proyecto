@@ -15,7 +15,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Asignaciones Diagnóstico Realizadas</h3>
+            <h3 class="page__heading">Asignaciones Reparación Realizadas</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -83,18 +83,10 @@
                 <span id="nameError" class="text-danger error-message d-none"></span>
              </div>
             </div>
-             <div class="col-xs-6 col-sm-6 col-md-6" id="divPresupuesto">
-             <div class="form-group mb-3">
-                <label for="presupuestoRealizado">Presupuesto</label>
-                <input type="text" name="presupuestoRealizado" id="presupuestoRealizado" class="form-control" disabled>
-             </div>
-            </div>
          </div>       
     </div>
       <div class="modal-footer">
           <button type="button" class="btn btn-primary" id="btnGuardar">Reasignar</button>
-          <button type="button" class="btn btn-primary" id="btnPre">Presupuestar</button>
-          <button type="button" class="btn btn-primary" id="btnAceptarPre">Aceptar Presupuesto</button>
           <button type="button" class="btn btn-secondary closeBtn" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
@@ -102,41 +94,6 @@
 </div>
 </form>
 
-
-<form id="modalCreateForm2">
-<div class="modal fade modalCreateForm" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style=" max-width: 50% !important;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title" id="exampleModalLabel2">Titulo</h3>
-        <button type="button" class="close closeBtn" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="modal-body2">
-             <div class="col-xs-12 col-sm-12 col-md-12">
-              <div class="form-group mb-3">
-                 <label for="fechacompaceptacion">Fecha Compromiso</label>
-                 <input type="date" name="fechacompaceptacion" id="fechacompaceptacion" class="form-control">  
-              </div>
-             </div>
-
-
-             <div class="col-xs-12 col-sm-12 col-md-12">
-                <div class="form-group mb-3">
-                    <label for="detalleaceptpre">Detalle</label>
-                    <textarea name="detalleaceptpre" id="detalleaceptpre" cols="30" rows="10" style="width:100%; resize:none;"></textarea>
-                </div>
-            </div>
-    </div>
-      <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="btnAceptarPre2">Aceptar</button>
-          <button type="button" class="btn btn-secondary closeBtn" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-</form>
 
 @endsection
 @section('scripts')
@@ -152,7 +109,7 @@ $(document).ready(function() {
     //Tabla principal
     var tablita = $('#example').DataTable( {
         "serverSide": true,
-        "ajax":  "{{route('asignacionesdiagnosticorealizadas')}}",
+        "ajax":  "{{route('asignacionesreparacionrealizadas')}}",
         "columns": [
             {data: 'id'},
             {data: 'serie'},
@@ -169,7 +126,7 @@ $(document).ready(function() {
     $('body').on('click', '.detBtn', function (){
         var id = $(this).data('id');
         console.log(id);
-        var url = '{{route("diagnosticoasignado", ":id")}}';
+        var url = '{{route("reparacionasignada", ":id")}}';
         url = url.replace(':id', id);
 
         $.ajax({
@@ -178,18 +135,12 @@ $(document).ready(function() {
             success: function(response){
                 console.log(response);
                 $('#exampleModal').modal('show');
-                $('#exampleModal2').modal('hide');
                 
                 $('.modal-title').html('Detalle Equipo');
 
-
                 $('#btnGuardar').addClass("d-none");
-                $('#btnPre').addClass("d-none");
                 $('#nameError').addClass("d-none");
                 $('#emailError').addClass("d-none");
-                $('#btnFinalizarDiag').addClass("d-none");
-                $('#divPresupuesto').addClass('d-none');
-                $('#btnAceptarPre').addClass('d-none');
 
 
                 if(document.getElementById('selectTecnicos')){
@@ -215,18 +166,7 @@ $(document).ready(function() {
                 if(document.getElementById('divCol2')){
                     document.getElementById('divCol2').remove();
                 }
-
-                if(document.getElementById('divCol3')){
-                    document.getElementById('divCol3').remove();
-                }
-
-                if(document.getElementById('divCol4')){
-                    document.getElementById('divCol4').remove();
-                }
-
-                if(document.getElementById('divCol5')){
-                    document.getElementById('divCol5').remove();
-                }
+            
 
                 $('#divRowBro').removeClass("d-none");
                 
@@ -234,14 +174,6 @@ $(document).ready(function() {
                 $('#id').val(response.data[0].id);
                 $('#fechaingreso').val(response.data[0].fechaIngreso.created_at);
                 $('#fechacompromiso').val(response.data[0].fechacompromiso);
-                
-                if(response.data[0].presupuesto){
-                    $('#presupuestoRealizado').val(response.data[0].presupuesto);
-                    $('#divPresupuesto').removeClass('d-none');
-                    $('#btnAceptarPre').removeClass('d-none');
-                    
-                    
-                }
                 
 
                 if(document.getElementById('newCreated')){
@@ -368,6 +300,14 @@ $(document).ready(function() {
                         buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
                     }
 
+                    if(response.data[0].comentarios[i].id_estado == 5){
+                        buttonH2.innerHTML = 'Detalle Ingreso Orden Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 8){
+                        buttonH2.innerHTML = 'Detalle Reparación Finalizada ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
                     headerH2.appendChild(buttonH2);
 
                     //divCollapse
@@ -429,14 +369,13 @@ $(document).ready(function() {
             if(response.error){
                 Swal.fire({
                 icon: 'error',
-                title: 'Error en la Reasignación de Diagnóstico.',
+                title: 'Error en la Reasignación de Reparación.',
                 text: response.error,
                 });
             }
 
             if(!response.error){
                 $('#exampleModal').modal('show');
-                $('#exampleModal2').modal('hide');
                 $('.modal-title').html('Reasignación Equipo');
                 
                 $('#btnGuardar').removeClass("d-none");
@@ -444,8 +383,6 @@ $(document).ready(function() {
                 $('#nameError').addClass("d-none");
                 $('#emailError').addClass("d-none");
                 $('#divRowBro').addClass("d-none");
-                $('#presupuesto').addClass("d-none");
-                $('#btnAceptarPre').addClass('d-none');
 
                 if(document.getElementById('accordionExample')){
                     document.getElementById('accordionExample').remove();
@@ -463,17 +400,7 @@ $(document).ready(function() {
                     document.getElementById('divCol2').remove();
                 }
 
-                if(document.getElementById('divCol3')){
-                    document.getElementById('divCol3').remove();
-                }
-
-                if(document.getElementById('divCol4')){
-                        document.getElementById('divCol4').remove();
-                }
-
-                if(document.getElementById('divCol5')){
-                    document.getElementById('divCol5').remove();
-                }
+               
 
                 if(response.data.length){
 
@@ -567,7 +494,7 @@ $(document).ready(function() {
 
 
         $.ajax({
-            url: "{{route('reasignardiagnostico')}}",
+            url: "{{route('reasignarreparacion')}}",
             method: 'POST',
             data: {
             'idEquipo': idEquipo,
@@ -599,302 +526,6 @@ $(document).ready(function() {
             }
         })
     });
-
-
-    $('body').on('click', '.preBtn', function (){
-        var id = $(this).data('id');
-        $('#id').val(id);
-        var url = '{{route("estaDiagnosticado", ":id")}}';
-        url = url.replace(':id', id);
-
-        $.ajax({
-        url: url,
-        method: 'GET',
-            success: function(response){
-                console.log(response);
-
-                if(response.error){
-                    Swal.fire({
-                    icon: 'error',
-                    title: 'Error en Presupuestar Diagnóstico.',
-                    text: response.error,
-                    });
-                }
-
-                if(!response.error){
-
-                    $('#exampleModal').modal('show');
-                    $('#exampleModal2').modal('hide');
-                    $('.modal-title').html('Presupuestar Diagnóstico');
-                    $('#divRowBro').addClass("d-none");
-                    $('#btnAceptarPre').addClass('d-none');
-                    
-
-                    $('#btnGuardar').addClass("d-none");
-                    $('#btnPre').removeClass("d-none");
-                    $('#btnFinalizarDiag').addClass("d-none");
-                    
-                    if(document.getElementById('selectTecnicos')){
-                        $('#selectTecnicos').addClass("d-none");
-                    }
-
-                    if(document.getElementById('labelGroup')){
-                        $('#labelGroup').addClass("d-none");
-                    }
-                    
-                    if(document.getElementById('labelGroup2')){
-                        $('#labelGroup2').addClass("d-none");
-                    }
-
-                    if(document.getElementById('detalle')){
-                        $('#detalle').addClass("d-none");
-                    }
-
-                    if(document.getElementById('divCol')){
-                        document.getElementById('divCol').remove();
-                    }
-
-                    if(document.getElementById('divCol2')){
-                        document.getElementById('divCol2').remove();
-                    }
-
-                    if(document.getElementById('divCol3')){
-                        document.getElementById('divCol3').remove();
-                    }
-
-                    if(document.getElementById('divCol4')){
-                        document.getElementById('divCol4').remove();
-                    }
-
-                    if(document.getElementById('divCol5')){
-                        document.getElementById('divCol5').remove();
-                    }
-                   
-                    
-                    $('#presupuesto').val("");
-
-                    if(document.getElementById('newCreated')){
-                        document.getElementById('newCreated').remove();
-                    }
-
-                    if(document.getElementById('accordionExample')){
-                        document.getElementById('accordionExample').remove();
-                    }
-
-                    //Modal
-                    var modalBody = document.getElementById('modal-body');
-
-
-                    //-------------- Input Presupuesto --------------
-                    //Div Col4
-                    var divCol4 = document.createElement("div");
-                    divCol4.setAttribute('id', 'divCol4');
-                    divCol4.setAttribute('class', 'col-xs-12 col-sm-12 col-md-12');
-
-                    modalBody.appendChild(divCol4);
-
-                    //Div group2
-                    var divGroup2 = document.createElement("div");
-                    divGroup2.setAttribute('class', 'form-group mb-3');
-                    divCol4.appendChild(divGroup2);
-
-                    //label Group
-                    var labelGroup2 = document.createElement("label");
-                    labelGroup2.setAttribute('id', 'labelGroup2');
-                    labelGroup2.innerHTML = 'Presupuesto'
-                    divGroup2.appendChild(labelGroup2);
-
-                    //Input Presupuesto
-                    var inputPresupuesto = document.createElement("input");
-                    inputPresupuesto.setAttribute('type', 'text');
-                    inputPresupuesto.setAttribute('class', 'form-control');
-                    inputPresupuesto.setAttribute('id', 'presupuesto');
-                    inputPresupuesto.setAttribute('name', 'presupuesto');
-                    divGroup2.appendChild(inputPresupuesto);
-
-                    //-------------- Detalle presupuesto --------------
-
-                    //Div Col5
-                    var divCol5 = document.createElement("div");
-                    divCol5.setAttribute('id', 'divCol5');
-                    divCol5.setAttribute('class', 'col-xs-12 col-sm-12 col-md-12');
-
-                    modalBody.appendChild(divCol5);
-
-                    //Div group2
-                    var divGroup3 = document.createElement("div");
-                    divGroup3.setAttribute('class', 'form-group mb-3');
-                    divCol5.appendChild(divGroup3);
-
-                    //label Group
-                    var labelGroup3 = document.createElement("label");
-                    labelGroup3.setAttribute('id', 'labelGroup3');
-                    labelGroup3.innerHTML = 'Detalle'
-                    divGroup3.appendChild(labelGroup3);
-
-                    //Detalle reasignacion
-                    var detalle2 = document.createElement("textarea");
-                    detalle2.setAttribute('style', 'width:100%; resize:none;');
-                    detalle2.setAttribute('rows', '10');
-                    detalle2.setAttribute('id', 'detalle2');
-                    detalle2.setAttribute('name', 'detalle2');
-                    divGroup3.appendChild(detalle2);
-
-                    modalBody.appendChild(divCol5);
-
-                }
-            },
-         error: function(){
-                console.log(error);
-            }
-         });
-    });
-
-    $('body').on('click', '#btnPre', function (){
-        var idEquipo = $('#id').val();
-        var detalle = $('#detalle2').val();
-        var presupuesto = $('#presupuesto').val();
-        
-        $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-        });
-
-
-        $.ajax({
-            url: "{{route('presupuestarEquipo')}}",
-            method: 'POST',
-            data: {
-            'idEquipo': idEquipo,
-            'detalle': detalle,
-            'presupuesto': presupuesto,
-            },
-            success: function(response){
-                if(response){
-                console.log(response);
-                $('#example').DataTable().ajax.reload();
-                Swal.fire(
-                'Presupuesto Realizado!',
-                response.success, "success")           
-                }
-               
-                $('#exampleModal').modal('hide');
-            },
-            error: function(error){
-                if(error){ 
-                console.log(error)
-                }
-            }
-        })
-    });
-
-    $('body').on('click', '#btnAceptarPre', function (){
-
-        $('#exampleModal').modal('hide');
-        $('#exampleModal2').modal('show');
-
-        $('#exampleModalLabel2').html('Detalles aceptación presupuesto');
-
-        $('#divRowBro').addClass("d-none");
-        $('#btnPre').addClass("d-none");
-        $('#btnAceptarPre').addClass('d-none');
-        $('#fechacompaceptacion').removeClass('d-none');
-        
-
-        $('#btnGuardar').addClass("d-none");
-        $('#btnPre').removeClass("d-none");
-        $('#btnFinalizarDiag').addClass("d-none");
-        
-        if(document.getElementById('selectTecnicos')){
-            $('#selectTecnicos').addClass("d-none");
-        }
-
-        if(document.getElementById('labelGroup')){
-            $('#labelGroup').addClass("d-none");
-        }
-        
-        if(document.getElementById('labelGroup2')){
-            $('#labelGroup2').addClass("d-none");
-        }
-
-        if(document.getElementById('detalle')){
-            $('#detalle').addClass("d-none");
-        }
-
-        if(document.getElementById('divCol')){
-            document.getElementById('divCol').remove();
-        }
-
-        if(document.getElementById('divCol2')){
-            document.getElementById('divCol2').remove();
-        }
-
-        if(document.getElementById('divCol3')){
-            document.getElementById('divCol3').remove();
-        }
-
-        if(document.getElementById('divCol4')){
-            document.getElementById('divCol4').remove();
-        }
-
-        if(document.getElementById('divCol5')){
-            document.getElementById('divCol5').remove();
-        }
-        
-        if(document.getElementById('newCreated')){
-            document.getElementById('newCreated').remove();
-        }
-
-        if(document.getElementById('accordionExample')){
-            document.getElementById('accordionExample').remove();
-        }
-
-
-
-    });
-
-    $('body').on('click', '#btnAceptarPre2', function (){
-        var idEquipo = $('#id').val();
-        var fechacompaceptacion = $('#fechacompaceptacion').val();
-        var detalleaceptpre = $('#detalleaceptpre').val();
-        
-        $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-        });
-
-
-        $.ajax({
-            url: "{{route('aceptarPresupuesto')}}",
-            method: 'POST',
-            data: {
-                'idEquipo': idEquipo,
-                'fechacompaceptacion': fechacompaceptacion,
-                'detalleaceptpre': detalleaceptpre
-            },
-            success: function(response){
-                if(response){
-                console.log(response);
-                $('#example').DataTable().ajax.reload();
-                Swal.fire(
-                'Presupuesto Aceptado!',
-                response.success, "success")           
-                }
-
-                $('#exampleModal2').modal('hide');
-            },
-            error: function(error){
-                if(error){ 
-                console.log(error)
-                }
-            }
-        })
-    });
-
-
-
 
 
 

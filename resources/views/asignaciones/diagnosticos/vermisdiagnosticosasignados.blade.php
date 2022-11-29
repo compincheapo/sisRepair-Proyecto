@@ -147,6 +147,8 @@ $(document).ready(function() {
       $('#btnGuardar').addClass("d-none");
       $('#nameError').addClass("d-none");
       $('#emailError').addClass("d-none");
+      $('#btnFinalizarDiag').addClass("d-none");
+
 
       if(document.getElementById('selectTecnicos')){
         $('#selectTecnicos').addClass("d-none");
@@ -163,6 +165,18 @@ $(document).ready(function() {
       if(document.getElementById('detalle')){
         $('#detalle').addClass("d-none");
       }
+
+      if(document.getElementById('divCol')){
+        document.getElementById('divCol').remove();
+      }
+
+      if(document.getElementById('divCol2')){
+        document.getElementById('divCol2').remove();
+      }
+
+      if(document.getElementById('divCol3')){
+        document.getElementById('divCol3').remove();
+    }
 
       $('#divRowBro').removeClass("d-none");
       
@@ -274,18 +288,18 @@ $(document).ready(function() {
         buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
         buttonH2.setAttribute('type', 'button');
         buttonH2.setAttribute('data-toggle', 'collapse');
-        buttonH2.setAttribute('data-target', '#collapseOne');
+        buttonH2.setAttribute('data-target', '#collapseOne'+i);
         buttonH2.setAttribute('aria-expanded', 'true');
         buttonH2.setAttribute('aria-controls', 'collapseOne');
         buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
         //Control de Tipo de Comentario o Detalle
         if(response.data[0].comentarios[i].id_estado == 1){
-          buttonH2.innerHTML = 'Detalle ingreso Equipo'
+          buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
         }
 
-        if(response.data[0].comentarios[i].id_estado != 1){
-          console.log("hola");
+        if(response.data[0].comentarios[i].id_estado == 9){
+          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
         }
 
         headerH2.appendChild(buttonH2);
@@ -293,7 +307,7 @@ $(document).ready(function() {
         //divCollapse
         var divCollapse = document.createElement("div");
         divCollapse.setAttribute('data-collapse', '#mycard-collapse')
-        divCollapse.setAttribute('id', 'collapseOne')
+        divCollapse.setAttribute('id', 'collapseOne'+i)
         divCollapse.setAttribute('class', 'collapse')
         divCollapse.setAttribute('aria-labelledby', 'headingOne')
         divCollapse.setAttribute('data-parent', '#accordionExample')
@@ -371,10 +385,8 @@ $(document).ready(function() {
 $('body').on('click', '.reBtn', function (){
 
   var id = $(this).data('id');
-  $('#id').val(id);
-
-
-  var url = '{{route("getTecnicosReasignacion")}}';
+  var url = '{{route("getTecnicosReasignacion", ":id")}}';
+  url = url.replace(':id', id);
 
   $.ajax({
     url: url,
@@ -389,6 +401,8 @@ $('body').on('click', '.reBtn', function (){
       $('#nameError').addClass("d-none");
       $('#emailError').addClass("d-none");
       $('#divRowBro').addClass("d-none");
+      $('#btnFinalizarDiag').addClass("d-none");
+
       
 
       if(document.getElementById('accordionExample')){
@@ -405,6 +419,10 @@ $('body').on('click', '.reBtn', function (){
 
       if(document.getElementById('divCol2')){
           document.getElementById('divCol2').remove();
+      }
+
+      if(document.getElementById('divCol3')){
+          document.getElementById('divCol3').remove();
       }
 
       if(response.data.length){
@@ -437,7 +455,6 @@ $('body').on('click', '.reBtn', function (){
         selectTecnicos.setAttribute('name', 'selectTecnicos');
         divGroup.appendChild(selectTecnicos);
 
-        console.log(response.data[0].user_id);
         //Options
         for (let i = 1; i < response.data.length ; i++) {
           if(response.data[i].id != response.data[0].user_id){
@@ -533,83 +550,85 @@ $('body').on('click', '.finBtn', function (){
 var id = $(this).data('id');
 $('#id').val(id);
 
+var url = '{{route("getFinalizarDiagnostico", ":id")}}';
+url = url.replace(':id', id);
 
-var url = '{{route("getFinalizarDiagnostico")}}';
 
 $.ajax({
   url: url,
   method: 'GET',
   success: function(response){
-    $('.modalCreateForm').modal('show');
-    $('.modal-title').html('Finalizar Diagnóstico');
-
-    $('#btnIniciarDiag').addClass("d-none");
-    $('#btnGuardar').addClass("d-none");
-    $('#nameError').addClass("d-none");
-    $('#emailError').addClass("d-none");
-    $('#divRowBro').addClass("d-none");
-    $('#btnFinalizarDiag').removeClass("d-none");
     
+    if(response.error){
+      Swal.fire({
+      icon: 'error',
+      title: 'Error en Finalización de Diagnóstico.',
+      text: response.error,
+      })
+    }     
+    if(!response.error){    
+      $('.modalCreateForm').modal('show');
+      $('.modal-title').html('Finalizar Diagnóstico');
 
-    if(document.getElementById('accordionExample')){
-            document.getElementById('accordionExample').remove();
-    }
-
-    if(document.getElementById('newCreated')){
-            document.getElementById('newCreated').remove();
-    }
-
-    if(document.getElementById('divCol')){
-        document.getElementById('divCol').remove();
-    }
-
-    if(document.getElementById('divCol2')){
-        document.getElementById('divCol2').remove();
-    }
-
-    if(response.data.length){
-
-      //Modal Body
-      var modalBody = document.getElementById('modal-body');
-
-      //Div Col
-      var divCol = document.createElement("div");
-      divCol.setAttribute('id', 'divCol');
-      divCol.setAttribute('class', 'col-xs-12 col-sm-12 col-md-12');
-
-      modalBody.appendChild(divCol);
-
+      $('#btnIniciarDiag').addClass("d-none");
+      $('#btnGuardar').addClass("d-none");
+      $('#nameError').addClass("d-none");
+      $('#emailError').addClass("d-none");
+      $('#divRowBro').addClass("d-none");
+      $('#btnFinalizarDiag').removeClass("d-none");
       
-      //Div Col2
-      var divCol2 = document.createElement("div");
-      divCol2.setAttribute('id', 'divCol2');
-      divCol2.setAttribute('class', 'col-xs-12 col-sm-12 col-md-12');
 
-      modalBody.appendChild(divCol2);
+      if(document.getElementById('accordionExample')){
+              document.getElementById('accordionExample').remove();
+      }
 
-      //Div group2
-      var divGroup = document.createElement("div");
-      divGroup.setAttribute('class', 'form-group mb-3');
-      divCol2.appendChild(divGroup);
+      if(document.getElementById('newCreated')){
+              document.getElementById('newCreated').remove();
+      }
 
-      //label Group
-      var labelGroup2 = document.createElement("label");
-      labelGroup2.setAttribute('id', 'labelGroup2');
-      labelGroup2.innerHTML = 'Detalle'
-      divGroup.appendChild(labelGroup2);
+      if(document.getElementById('divCol')){
+          document.getElementById('divCol').remove();
+      }
 
-      //Detalle reasignacion
-      var detalle = document.createElement("textarea");
-      detalle.setAttribute('style', 'width:100%; resize:none;');
-      detalle.setAttribute('rows', '10');
-      detalle.setAttribute('id', 'detalle2');
-      detalle.setAttribute('name', 'detalle2');
-      divGroup.appendChild(detalle);
+      if(document.getElementById('divCol2')){
+          document.getElementById('divCol2').remove();
+      }
 
-      modalBody.appendChild(divCol2);
+      if(document.getElementById('divCol3')){
+          document.getElementById('divCol3').remove();
+      }
+      
+        //Modal Body
+        var modalBody = document.getElementById('modal-body');
 
+        //Div Col3
+        var divCol3 = document.createElement("div");
+        divCol3.setAttribute('id', 'divCol3');
+        divCol3.setAttribute('class', 'col-xs-12 col-sm-12 col-md-12');
+
+        modalBody.appendChild(divCol3);
+
+        //Div group2
+        var divGroup = document.createElement("div");
+        divGroup.setAttribute('class', 'form-group mb-3');
+        divCol3.appendChild(divGroup);
+
+        //label Group
+        var labelGroup2 = document.createElement("label");
+        labelGroup2.setAttribute('id', 'labelGroup2');
+        labelGroup2.innerHTML = 'Detalle'
+        divGroup.appendChild(labelGroup2);
+
+        //Detalle finalización
+        var detalle = document.createElement("textarea");
+        detalle.setAttribute('style', 'width:100%; resize:none;');
+        detalle.setAttribute('rows', '10');
+        detalle.setAttribute('id', 'detalle2');
+        detalle.setAttribute('name', 'detalle2');
+        divGroup.appendChild(detalle);
+
+        modalBody.appendChild(divCol3);
     }
-
     },
     error: function(error){
         console.log(error);
@@ -630,20 +649,20 @@ $('body').on('click', '#btnFinalizarDiag', function (){
 
 
       $.ajax({
-        url: "{{route('reasignardiagnostico')}}",
+        url: "{{route('finalizarDiagnostico')}}",
         method: 'POST',
         data: {
           'idEquipo': idEquipo,
           'detalle': detalle,
         },
         success: function(response){
-            if(response){
-              console.log(response);
+            if(response.success){
               $('#example').DataTable().ajax.reload();
               Swal.fire(
               'Diagnóstico Finalizado!',
               response.success, "success")           
             }
+
             $('.modalCreateForm').modal('hide');
         },
         error: function(error){

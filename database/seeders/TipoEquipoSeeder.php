@@ -19,7 +19,7 @@ class TipoEquipoSeeder extends Seeder
             'descripcion' => 'Portatil de mediana-grande prestación',
         ]);
         TipoEquipo::create([ 
-            'nombre' => 'Netebook',
+            'nombre' => 'Notebook',
             'descripcion' => 'Portatil de pequeñas prestaciones',
         ]);
         TipoEquipo::create([ 

@@ -11,7 +11,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Asignación Equipo para Diagnóstico</h3>
+            <h3 class="page__heading">Asignación Equipo para Reparación</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -53,7 +53,7 @@
                                 </button>
                             </div>
                         </div>
-                        {!! Form::open(array('route'=> 'asignarDiagnostico', 'method'=> 'POST', 'id' => 'frm-example')) !!}
+                        {!! Form::open(array('route'=> 'asignarReparacion', 'method'=> 'POST', 'id' => 'frm-example')) !!}
 
                         <div class="bs-stepper-content">
                             <div id="test-l-1" class="content">
@@ -220,7 +220,7 @@
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposDiagnostico')}}",
+                    "ajax":  "{{route('equiposReparacion')}}",
                     "columns": [
                         {data: 'id'},
                         {data: 'serie'},
@@ -488,7 +488,7 @@
             $('body').on('click', '.detBtn', function (){
 
             var id = $(this).data('id');
-            var url = '{{route("getDetalleEquipoDiagnostico", ":id")}}';
+            var url = '{{route("getDetalleEquipoReparacion", ":id")}}';
             url = url.replace(':id', id);
 
             $.ajax({
@@ -568,11 +568,11 @@
                     
                 }
 
-                if(response.data[0].comentario){
+                if(response.data[0].comentarios){
 
                 //Div hermano.
                 var divRowBro = document.getElementById('divRowBro').parentNode;
-                
+
                 //Div Accordion.
                 var divAccordion = document.createElement("div");
                 divAccordion.setAttribute('class', 'accordion');
@@ -582,80 +582,101 @@
                 divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
 
-                //-------------------- RECORRIDO COMENTARIO ---------------------------
-            
-                    
-                //Div Card
-                var divCard = document.createElement("div");
-                divCard.setAttribute('class', 'card');
-                divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
+                //-------------------- RECORRIDO COMENTARIOS ---------------------------
 
-                divAccordion.appendChild(divCard);
+                console.log(response.data[0].comentarios.length, 'cantidad comentarios');
 
-                //Div Card-header
-                var divCardHeader = document.createElement("div");
-                divCardHeader.setAttribute('class', 'card-header');
-                divCardHeader.setAttribute('id', 'headingOne');
-                divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
-
-                divCard.appendChild(divCardHeader);
-
-                //H2
-                var headerH2 = document.createElement("h2");
-
-                divCardHeader.appendChild(headerH2);
-
-
-                //Button H2
-                var buttonH2 = document.createElement("button");
-                buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
-                buttonH2.setAttribute('type', 'button');
-                buttonH2.setAttribute('data-toggle', 'collapse');
-                buttonH2.setAttribute('data-target', '#collapseOne');
-                buttonH2.setAttribute('aria-expanded', 'true');
-                buttonH2.setAttribute('aria-controls', 'collapseOne');
-                buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
-
-                //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
-        
-
-                headerH2.appendChild(buttonH2);
-
-                //divCollapse
-                var divCollapse = document.createElement("div");
-                divCollapse.setAttribute('data-collapse', '#mycard-collapse')
-                divCollapse.setAttribute('id', 'collapseOne')
-                divCollapse.setAttribute('class', 'collapse')
-                divCollapse.setAttribute('aria-labelledby', 'headingOne')
-                divCollapse.setAttribute('data-parent', '#accordionExample')
-
-                divCard.appendChild(divCollapse);
-
-                //div Card-Body
-                var divCardBody = document.createElement("div");
-                divCardBody.setAttribute('class', 'card-body')
-                divCardBody.innerHTML = response.data[0].comentario.descripcion;
-
-                divCollapse.appendChild(divCardBody);
-
-                //Div Colapsable card-footer
-                var divCardFooter = document.createElement("div");
-                divCardFooter.setAttribute('class', 'card-footer');
-                divCardFooter.innerHTML = 'Escrito por:'
-
-                divCollapse.appendChild(divCardFooter);
-
-                //Parrafo card-footer
-
-                var pCardFooter = document.createElement("p");
-                pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
-                pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
-
-                divCardFooter.appendChild(pCardFooter);
-
+                for (let i = 0; i < response.data[0].comentarios.length; i++) {
                 
-                }     
+                    //Div Card
+                    var divCard = document.createElement("div");
+                    divCard.setAttribute('class', 'card');
+                    divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
+
+                    divAccordion.appendChild(divCard);
+
+                    //Div Card-header
+                    var divCardHeader = document.createElement("div");
+                    divCardHeader.setAttribute('class', 'card-header');
+                    divCardHeader.setAttribute('id', 'headingOne');
+                    divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
+
+                    divCard.appendChild(divCardHeader);
+
+                    //H2
+                    var headerH2 = document.createElement("h2");
+
+                    divCardHeader.appendChild(headerH2);
+
+
+                    //Button H2
+                    var buttonH2 = document.createElement("button");
+                    buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
+                    buttonH2.setAttribute('type', 'button');
+                    buttonH2.setAttribute('data-toggle', 'collapse');
+                    buttonH2.setAttribute('data-target', '#collapseOne'+i);
+                    buttonH2.setAttribute('aria-expanded', 'true');
+                    buttonH2.setAttribute('aria-controls', 'collapseOne');
+                    buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
+
+                    //Control de Tipo de Comentario o Detalle
+                    if(response.data[0].comentarios[i].id_estado == 1){
+                        buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 9){
+                        buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 4){
+                        buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 10){
+                        buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 5){
+                        buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    headerH2.appendChild(buttonH2);
+
+                    //divCollapse
+                    var divCollapse = document.createElement("div");
+                    divCollapse.setAttribute('data-collapse', '#mycard-collapse')
+                    divCollapse.setAttribute('id', 'collapseOne'+i)
+                    divCollapse.setAttribute('class', 'collapse')
+                    divCollapse.setAttribute('aria-labelledby', 'headingOne')
+                    divCollapse.setAttribute('data-parent', '#accordionExample')
+
+                    divCard.appendChild(divCollapse);
+
+                    //div Card-Body
+                    var divCardBody = document.createElement("div");
+                    divCardBody.setAttribute('class', 'card-body')
+                    divCardBody.innerHTML = response.data[0].comentarios[i].descripcion;
+
+                    divCollapse.appendChild(divCardBody);
+
+                    //Div Colapsable card-footer
+                    var divCardFooter = document.createElement("div");
+                    divCardFooter.setAttribute('class', 'card-footer');
+                    divCardFooter.innerHTML = 'Escrito por:'
+
+                    divCollapse.appendChild(divCardFooter);
+
+                    //Parrafo card-footer
+
+                    var pCardFooter = document.createElement("p");
+                    pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
+                    pCardFooter.innerHTML = response.data[0].comentarios[i].lastname + ' ' + response.data[0].comentarios[i].name;
+
+                    divCardFooter.appendChild(pCardFooter);
+
+                }
+
+            }       
             
             },
             error: function(){

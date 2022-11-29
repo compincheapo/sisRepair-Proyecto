@@ -50,5 +50,13 @@ class EstadoSeeder extends Seeder
             'nombre' => 'Reasignado',
             'descripcion' => 'Equipo que se ha reasignado de un Técnico a otro.',
         ]);
+        Estado::create([ 
+            'nombre' => 'Presupuestado',
+            'descripcion' => 'Equipo con diagnóstico finalizado y donde el Gerente realiza el presupuesto de dicho trabajo según los problemas encontrados y que derivan a la solución',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Presupuesto Aceptado',
+            'descripcion' => 'Equipo con diagnóstico finalizado y donde el Gerente realiza el presupuesto de dicho trabajo según los problemas encontrados y que derivan a la solución',
+        ]);
     }
 }

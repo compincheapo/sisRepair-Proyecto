@@ -52,133 +52,171 @@ body.sidebar-mini .main-sidebar:after {
 
 </style>
 
-
+@if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
 <li id="drop-1" class="dropdown pepe">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-cogs"></i><span>Módulo Configuración</span></a>
         <ul id="dropmenu-1" class="dropdown-menu">
-            @can('ver-infogeneral')
-            <hr style="margin-top:1px; margin-bottom:1px;">
-            <li class="{{ Request::is('') ? 'active' : '' }} nav-item">
-                <a href="{{ url('/') }}" class="primario">Información General</a>
-            </li>
-            @endcan
-            @can('ver-usuario')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('usuarios') ? 'active' : '' }} nav-item">
-                <a href="{{ url('/usuarios') }}" class="primario">Usuarios</a>
-            </li>
-            @endcan
-            @can('ver-rol')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('roles') ? 'active' : '' }}">
-                <a href="{{ url('/roles') }}" class="primario">Roles</a>
-            </li>
-            @endcan
-            @can('ver-marcas')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('marcas') ? 'active' : '' }}">
-                <a href="{{ url('/marcas') }}" class="primario">Marcas</a>
-            </li>
-            @endcan
-            <!-- @can('ver-estados')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('estados') ? 'active' : '' }}">
-                <a href="{{ url('/estados') }}" class="primario">Estados</a>
-            </li>
-            @endcan -->
-            @can('ver-tiposequipos')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('tipoequipos') ? 'active' : '' }}">
-                <a href="{{ url('/tipoequipos') }}" class="primario">Tipos Equipos</a>
-            </li>
-            @endcan
-            @can('ver-tiposaccesorios')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('tipoaccesorios') ? 'active' : '' }}">
-                <a href="{{ url('/tipoaccesorios') }}" class="primario">Tipos Accesorios</a>
-            </li>
-            @endcan
-            <!-- @can('ver-servicios')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('servicios') ? 'active' : '' }}">
-                <a href="{{ url('/servicios') }}" class="primario">Servicios</a>
-            </li>
-            @endcan -->
-            @can('ver-tiposervicios')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('tiposervicios') ? 'active' : '' }}">
-                <a href="{{ url('/tiposervicios') }}" class="primario">Tipos Servicios</a>
-            </li>
-            @endcan
-            <hr style="margin-top:1px; margin-bottom:1px">
+                @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px;">
+                <li class="{{ Request::is('') ? 'active' : '' }} nav-item">
+                    <a href="{{ url('/') }}" class="primario">Información General</a>
+                </li>
+                @endif
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('usuarios') ? 'active' : '' }} nav-item">
+                    <a href="{{ url('/usuarios') }}" class="primario">Usuarios</a>
+                </li>
+                @endif
+                @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('roles') ? 'active' : '' }}">
+                    <a href="{{ url('/roles') }}" class="primario">Roles</a>
+                </li>
+                @endif
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('marcas') ? 'active' : '' }}">
+                    <a href="{{ url('/marcas') }}" class="primario">Marcas</a>
+                </li>
+                @endif
+                <!-- @can('ver-estados')
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('estados') ? 'active' : '' }}">
+                    <a href="{{ url('/estados') }}" class="primario">Estados</a>
+                </li>
+                @endcan -->
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('tipoequipos') ? 'active' : '' }}">
+                    <a href="{{ url('/tipoequipos') }}" class="primario">Tipos Equipos</a>
+                </li>
+                @endif
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('tipoaccesorios') ? 'active' : '' }}">
+                    <a href="{{ url('/tipoaccesorios') }}" class="primario">Tipos Accesorios</a>
+                </li>
+                @endif
+                <!-- @can('ver-servicios')
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('servicios') ? 'active' : '' }}">
+                    <a href="{{ url('/servicios') }}" class="primario">Servicios</a>
+                </li>
+                @endcan -->
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('tiposervicios') ? 'active' : '' }}">
+                    <a href="{{ url('/tiposervicios') }}" class="primario">Tipos Servicios</a>
+                </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
+                @endif
+                @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/tiporepuestos') ? 'active' : '' }}">
+                    <a href="{{ url('/tiporepuestos') }}" class="primario">Tipos Repuestos</a>
+                </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
+                @endif
         </ul>
 </li>
-@can('ver-rol')
+@endif
+@if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
 <li id="drop-2" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-user"></i><span>Módulo Clientes</span></a>
         <ul id="dropmenu-2" class="dropdown-menu">
-            @can('ver-equipos')
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('equipos') ? 'active' : '' }}">
-                <a href="{{ url('/equipos') }}" class="primario">Gestión Equipos Cliente </a> 
-            </li>
-            @endcan
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
-            </li>
-            <hr style="margin-top:1px; margin-bottom:1px">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
-            </li>
-            <hr style="margin-top:1px; margin-bottom:1px">
+           @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('equipos') ? 'active' : '' }}">
+                    <a href="{{ url('/equipos') }}" class="primario">Gestión Equipos Cliente </a> 
+                </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
+                </li>
+            @endif
+
+            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
+                </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
+            @endif
         </ul>
 </li>
-
+@endif
+@if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Tercero" || Auth::user()->getRoleNames()->first() == "Vendedor")
 <li id="drop-3" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-hands-helping"></i><span>Módulo Terceros</span></a>
         <ul id="dropmenu-3" class="dropdown-menu">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Asignar Equipos </a>
-            </li>
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario">Asignar Equipos </a>
+                </li>
+            @endif 
+            @if(Auth::user()->getRoleNames()->first() == "Tercero")
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario">Consultar Asignaciones </a>
             </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Vendedor")
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario">Registrar Devolución </a>
             </li>
+            @endif
         </ul>
 </li>
+@endif
 
+@if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Tecnico")
 <li id="drop-4" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-diagnoses"></i><span>Módulo Diagnóstico</span></a>
         <ul id="dropmenu-4" class="dropdown-menu">
-            <li class="{{ Request::is('/asignacion/diagnostico') ? 'active' : '' }}">
-                <a href="{{ url('/asignacion/diagnostico') }}" class="primario">Asignar Diagnóstico</a>
-            </li>
-            <li class="{{ Request::is('asignacion/diagnosticosasignados') ? 'active' : '' }}">
-                <a href="{{ url('asignacion/diagnosticosasignados') }}" class="primario">Asignaciones Realizadas</a>
-            </li>
-            <li class="{{ Request::is('/asignacion/vermisdiagnosticosasignados') ? 'active' : '' }}">
-                <a href="{{ url('/asignacion/vermisdiagnosticosasignados') }}" class="primario">Mis Asignaciones</a>
-            </li>
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/asignacion/diagnostico') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/diagnostico') }}" class="primario">Asignar Diagnóstico</a>
+                </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('asignacion/diagnosticosasignados') ? 'active' : '' }}">
+                    <a href="{{ url('asignacion/diagnosticosasignados') }}" class="primario">Asignaciones Realizadas</a>
+                </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Tecnico" || Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/asignacion/vermisdiagnosticosasignados') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/vermisdiagnosticosasignados') }}" class="primario">Mis Asignaciones</a>
+                </li>
+            @endif
         </ul>
 </li>
+@endif
 
+@if(Auth::user()->getRoleNames()->first() == "Tecnico" || Auth::user()->getRoleNames()->first() == "Admin")
 <li id="drop-5" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-hammer"></i><span>Módulo Reparación</span></a>
         <ul id="dropmenu-5" class="dropdown-menu">
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Asignar Reparación</a>
-            </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Asignaciones Realizadas</a>
-            </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Mis Asignaciones</a>
-            </li>
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/asignacion/reparacion') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/reparacion') }}" class="primario">Asignar Reparación</a>
+                </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/asignacion/reparacionesasignadas') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/reparacionesasignadas') }}" class="primario">Asignaciones Realizadas</a>
+                </li>
+            @endif
+            @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Tecnico")
+                <li class="{{ Request::is('/asignacion/vermisreparacionesasignadas') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/vermisreparacionesasignadas') }}" class="primario">Mis Asignaciones</a>
+                </li>
+            @endif
         </ul>
 </li>
+@endif
+
+@if(Auth::user()->getRoleNames()->first() == "Admin")
 <li id="drop-6" class="dropdown pepe">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-cubes"></i><span>Módulo Inventario</span></a>
         <ul id="dropmenu-6" class="dropdown-menu">
@@ -193,12 +231,12 @@ body.sidebar-mini .main-sidebar:after {
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Gestionar Equipo Repuesto</a>
             </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Gestionar Repuesto</a>
+            <li class="{{ Request::is('/repuestos') ? 'active' : '' }}">
+                <a href="{{ url('/repuestos') }}" class="primario">Gestionar Repuesto</a>
             </li>
         </ul>
 </li>
-@endcan
+@endif
 
 <script>
 

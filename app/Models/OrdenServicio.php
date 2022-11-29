@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Equipo;
+use App\Models\Servicio;
 
 class OrdenServicio extends Model
 {
@@ -50,5 +51,9 @@ class OrdenServicio extends Model
 
     public function userOrden(){
        return $this->belongsToMany(User::class, 'users_ordenes', 'id_orden', 'id_user');
+    }
+
+    public function servicio(){
+        return $this->belongsTo(Servicio::class, 'id_servicio', 'id');
     }
 }

@@ -13,6 +13,8 @@ use App\Http\Controllers\TipoAccesorioController;
 use App\Http\Controllers\EstanteController;
 use App\Http\Controllers\SeccionesEstanteController;
 use App\Http\Controllers\EquipoController;
+use App\Http\Controllers\TipoRepuestoController;
+use App\Http\Controllers\RepuestoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +55,8 @@ Route::resource('/tipoequipos', TipoEquipoController::class)->middleware('auth')
 
 Route::resource('/tipoaccesorios', TipoAccesorioController::class)->middleware('auth');
 
+Route::resource('/tiporepuestos', TipoRepuestoController::class)->middleware('auth');
+
 Route::resource('/servicios', ServicioController::class)->middleware('auth');
     
 Route::resource('/tiposervicios', TipoServicioController::class)->middleware('auth');
@@ -69,40 +73,76 @@ Route::post('/equipos/fetch', [EquipoController::class, 'fetch'])->name('equipos
 
 Route::get('/tecnicos', [UsuarioController::class, 'getTecnicos'])->name('tecnicos');
 
+Route::resource('/repuestos', RepuestoController::class)->middleware('auth');
+
 
 
 
 // ------------------ Módulo Diagnóstico ------------------ 
-Route::get('/equiposUsuarios', [UsuarioController::class, 'getEquiposDiagnostico'])->name('equiposDiagnostico');
+Route::get('/equiposDiagnostico', [UsuarioController::class, 'getEquiposDiagnostico'])->name('equiposDiagnostico');
 
 Route::get('/asignacion/diagnostico', [UsuarioController::class, 'verDiagnosticos'])->name('diagnosticos');
 
-Route::get('/asignacion/diagnosticosasignados', [UsuarioController::class, 'verAsignacionesRealizadas'])->name('diagnosticosasignados');
+Route::get('/asignacion/diagnosticosasignados', [UsuarioController::class, 'verAsignacionesDiagnosticoRealizadas'])->name('diagnosticosasignados');
 
 Route::get('/asignacion/misdiagnosticosasignados', [UsuarioController::class, 'getMisAsignacionesDiagnostico'])->name('misdiagnosticosasignados');
 
 Route::get('/asignacion/diagnostico/{id}', [UsuarioController::class, 'getAsignacionDiagnostico'])->name('diagnosticoasignado');
 
+Route::get('/asignacion/estadiagnosticado/{id}', [UsuarioController::class, 'estaDiagnosticado'])->name('estaDiagnosticado');
+
+Route::get('/equiposDiagnostico/detalle/{id}', [UsuarioController::class, 'getDetalleEquipoDiagnostico'])->name('getDetalleEquipoDiagnostico');
+
 Route::post('/asignacion/reasignardiagnostico', [UsuarioController::class, 'reasignarDiagnostico'])->name('reasignardiagnostico');
 
-Route::get('/asignacion/tecnicosreasignacion', [UsuarioController::class, 'getTecnicosReasignacion'])->name('getTecnicosReasignacion');
+Route::get('/asignacion/tecnicosreasignacion/{id}', [UsuarioController::class, 'getTecnicosReasignacion'])->name('getTecnicosReasignacion');
 
-Route::get('/asignacion/finalizardiagnostico', [UsuarioController::class, 'getFinalizarDiagnostico'])->name('getFinalizarDiagnostico');
+Route::get('/asignacion/finalizardiagnostico/{id}', [UsuarioController::class, 'getFinalizarDiagnostico'])->name('getFinalizarDiagnostico');
 
 Route::post('/asignacion/finalizardiagnostico', [UsuarioController::class, 'finalizarDiagnostico'])->name('finalizarDiagnostico');
+
+Route::post('/asignacion/presupuestarEquipo', [UsuarioController::class, 'presupuestarEquipo'])->name('presupuestarEquipo');
+
+Route::post('/asignacion/aceptarrpresupuesto', [UsuarioController::class, 'aceptarPresupuesto'])->name('aceptarPresupuesto');
 
 Route::get('/asignacion/vermisdiagnosticosasignados', [UsuarioController::class, 'verMisAsignacionesRealizadas'])->name('vermisdiagnosticosasignados');
 
 Route::post('/asignacion/iniciardiagnostico', [UsuarioController::class, 'iniciarDiagnostico'])->name('iniciarDiagnostico');
 
-Route::get('/asignacionesrealizadas', [UsuarioController::class, 'getAsignacionesRealizadas'])->name('asignacionesrealizadas');
+Route::get('/asignacionesdiagnosticorealizadas', [UsuarioController::class, 'getAsignacionesDiagnosticoRealizadas'])->name('asignacionesdiagnosticorealizadas');
 
 Route::post('/asignacion/creardiagnostico', [UsuarioController::class, 'asignarDiagnostico'])->name('asignarDiagnostico');
 
 
 
 
-// ------------------ Módulo Reparación ------------------ 
+//------------------ Módulo Reparación ------------------ 
 
+Route::get('/equiposReparacion', [UsuarioController::class, 'getEquiposReparacion'])->name('equiposReparacion');
 
+Route::get('/asignacion/reparacion', [UsuarioController::class, 'verReparacion'])->name('reparaciones');
+
+Route::get('/equiposReparacion/detalle/{id}', [UsuarioController::class, 'getDetalleEquipoReparacion'])->name('getDetalleEquipoReparacion');
+
+Route::post('/asignacion/crearreparacion', [UsuarioController::class, 'asignarReparacion'])->name('asignarReparacion');
+
+Route::get('/asignacion/reparacionesasignadas', [UsuarioController::class, 'verAsignacionesReparacionRealizadas'])->name('reparacionesasignadas');
+
+Route::get('/asignacion/reparacion/{id}', [UsuarioController::class, 'getAsignacionReparacion'])->name('reparacionasignada');
+
+Route::post('/asignacion/reasignarreparacion', [UsuarioController::class, 'reasignarReparacion'])->name('reasignarreparacion');
+
+Route::get('/asignacionesreparacionrealizadas', [UsuarioController::class, 'getAsignacionesReparacionRealizadas'])->name('asignacionesreparacionrealizadas');
+
+Route::get('/asignacion/vermisreparacionesasignadas', [UsuarioController::class, 'verMisAsignacionesReparacionRealizadas'])->name('vermisreparacionesasignadas');
+
+Route::get('/asignacion/misreparacionesasignadas', [UsuarioController::class, 'getMisAsignacionesReparacion'])->name('misreparacionesasignadas');
+
+Route::post('/asignacion/iniciarreparacion', [UsuarioController::class, 'iniciarReparacion'])->name('iniciarReparacion');
+
+Route::get('/asignacion/finalizarreparacion/{id}', [UsuarioController::class, 'getFinalizarReparacion'])->name('getFinalizarReparacion');
+
+Route::post('/asignacion/finalizarreparacion', [UsuarioController::class, 'finalizarReparacion'])->name('finalizarReparacion');
+
+Route::get('/repuestosReparacion', [RepuestoController::class, 'getRepuestosReparacion'])->name('repuestosReparacion');
 

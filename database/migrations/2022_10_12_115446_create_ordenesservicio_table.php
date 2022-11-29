@@ -17,13 +17,19 @@ class CreateOrdenesservicioTable extends Migration
             $table->id();
             $table->date('fechacompromiso')->nullable();
             $table->boolean('finalizado');
-            $table->date('fechafin')->nullable();
+            $table->timestamp('fechafin')->nullable();
 
             $table->foreignId('id_equipo')
-            ->nullable()
-            ->constrained('equipos')
-            ->cascadeOnUpdate()
-            ->nullOnDelete();
+                ->nullable()
+                ->constrained('equipos')
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
+            
+            $table->foreignId('id_servicio')
+                  ->nullable()
+                  ->constrained('servicios')
+                  ->cascadeOnUpdate()
+                  ->nullOnDelete();
 
         });
     }

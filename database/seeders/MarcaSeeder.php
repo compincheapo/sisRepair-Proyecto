@@ -22,5 +22,9 @@ class MarcaSeeder extends Seeder
             'nombre' => 'DELL',
             'descripcion' => 'Marca de Equipos tipo Notebook, Netbook, Monitores, etc.',
         ]);
+        Marca::create([ 
+            'nombre' => 'Giga-Byte Technology',
+            'descripcion' => 'Marca de fuentes de alimentación, repuestos pc, etc.',
+        ]);
     }
 }

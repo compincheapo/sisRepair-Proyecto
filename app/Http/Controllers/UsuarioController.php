@@ -16,6 +16,8 @@ use DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\Estante;
+use App\Models\OrdenServicio;
+use Carbon\Carbon;
 
 
 
@@ -206,19 +208,39 @@ class UsuarioController extends Controller
     {
         
 
-        $equipos = Equipo::select('id', 'serie', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
+        $equipos = Equipo::select('id', 'serie', 'modelo', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
 
         foreach ($equipos as $key => $value) {
             $ordenEquipo = Equipo::findOrfail($value->id)->orden()->where('finalizado', 0)->first();
-            $ultimoEstado = $ordenEquipo->estados()->first();
+            if($ordenEquipo != null){
+                $ultimoEstado = $ordenEquipo->estados()->first();
+                if($ultimoEstado->id != 1){
+                    unset($equipos[$key]);
+                    
+                } else {
+                    $value->fechaCompromiso = $ordenEquipo->fechacompromiso;
 
-            if($ultimoEstado->id !== 1){
+                    $fechaIngreso = DB::table('equipos')
+                    ->select('equipos_estados_users_ordenes.created_at')
+                    ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+                    ->where('equipos.id', $value->id)
+                    ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+                    ->first();
+
+                    $value->fechaIngreso = $fechaIngreso->created_at;
+
+                }
+            } else {
                 unset($equipos[$key]);
             }
         }
         
-        
-         return DataTables()->collection($equipos)->toJson();
+         return DataTables()->collection($equipos)->addColumn('action', function($row){
+            return '
+            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>';
+        })
+        ->rawColumns(['action'])
+        ->toJson();
        
         
 
@@ -226,19 +248,14 @@ class UsuarioController extends Controller
 
     public function getTecnicos()
     {
-        $userActual = Auth::user()->id;
-        $tecnicos = User::role('Tecnico')->select('id', 'name', 'lastname')->get();
+
+        $tecnicos = User::with("roles")->whereHas("roles", function($q) {
+                $q->whereIn("name", ["Admin","Tecnico"]);
+            })->select('id', 'name', 'lastname')->get();
         return DataTables()->collection($tecnicos)->toJson();
     }
 
     public function verDiagnosticos(){
-        // $estado = new Estado;
-        // $equipos = $estado->equipos()->get();
-        // dd($equipos);
-        // $equipos = $estado->equipos()->select('equipos.id', 'serie', 'id_marca', 'equipos.id_user')->with('marca:id,nombre','user:id,name')->get();
-        // dd($equipos);
-        // $equipos = Equipo::select('id', 'serie', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
-        // dd($equipos);
         
         return view('asignaciones.diagnosticos.index');
     }
@@ -285,11 +302,11 @@ class UsuarioController extends Controller
 
     }
 
-    public function verAsignacionesRealizadas(){
+    public function verAsignacionesDiagnosticoRealizadas(){
         return view('asignaciones.diagnosticos.asignacionesRealizadas');
     }
 
-    public function getAsignacionesRealizadas(){
+    public function getAsignacionesDiagnosticoRealizadas(){
         //dd($equipos = Equipo::findOrfail('4')->where('id', 4)->first());
 
        $equiposAsignados = DB::table('users_ordenes')
@@ -297,19 +314,23 @@ class UsuarioController extends Controller
        ->join('equipos', 'ordenesservicio.id_equipo', '=', 'equipos.id')
        ->join('equipos_estados_users_ordenes', 'equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo')
        ->where('estadoAsignacion', 1)
-       ->where('finalizado', 0)
        ->where('equipos_estados_users_ordenes.id_estado', 2)
-       ->orWhere('equipos_estados_users_ordenes.id_estado', 5)
        ->get();
-
-
 
        $collection = new Collection;
        
         foreach ($equiposAsignados as $equipo) {
             $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca', 'id_user')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name')->first();
-  
 
+            $estadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+            
+            $estado = Estado::find($estadoEquipo->id_estado)->where('id', $estadoEquipo->id_estado)->first();
 
             $user = DB::table('equipos')->select('users.name', 'users.lastname')
             ->join('ordenesservicio','equipos.id', '=', 'ordenesservicio.id_equipo' )
@@ -319,17 +340,30 @@ class UsuarioController extends Controller
             ->where('equipos.id', $equipo->id_equipo)->first();
             
             $equipos->name = $user->name . " " . $user->lastname;
+            $equipos->estado = $estado->nombre;
+                
+            if($estado->id >= 2 && $estado->id <= 4 || $estado->id == 10){
+                $collection->push($equipos);
+            }  
 
-            $collection->push($equipos);
         }
-        return DataTables()->collection($collection)->toJson();
+
+        return DataTables()->collection($collection)->addColumn('action', function($row){
+            return '
+            <div style="text-align:center">
+            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>
+            <a href="#" class="btn-sm btn btn-danger reBtn" data-id="'.$row->id.'">Reasignar</a>
+            <a href="#" class="btn-sm btn btn-success preBtn" data-id="'.$row->id.'">Presupuestar</a>
+            </div>';
+        })
+        ->rawColumns(['action'])
+        ->toJson();
 
     }
 
     public function getMisAsignacionesDiagnostico(){
 
         $userActual = Auth::user()->id;
-
         $equiposAsignados = DB::table('users_ordenes')
         ->select('equipos_estados_users_ordenes.id_equipo')
         ->join('ordenesservicio', 'users_ordenes.id_orden', '=', 'ordenesservicio.id')
@@ -344,11 +378,6 @@ class UsuarioController extends Controller
 
         //->whereIn('equipos_estados_users_ordenes.id_estado', [1, 2, 3])
 
-        //dd($equiposAsignados);
-
-        
- 
- 
         $collection = new Collection;
         
          foreach ($equiposAsignados as $equipo) {   
@@ -360,7 +389,7 @@ class UsuarioController extends Controller
             ->first();
             
             // dd($estadoEquipo->id_estado);
-            if($estadoEquipo->id_estado == '2' || $estadoEquipo->id_estado == '3'){
+            if($estadoEquipo->id_estado == '2' || $estadoEquipo->id_estado == '3' || $estadoEquipo->id_estado == '9'){
                 $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca','modelo', 'id_user', 'id_seccionestante')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name', 'seccionEstante:id,nombre,id_estante')->first();   
     
                 $estante = Estante::findOrfail($equipos->seccionEstante->id_estante)->where('id',$equipos->seccionEstante->id_estante)->first();
@@ -400,6 +429,7 @@ class UsuarioController extends Controller
 
         $equipo = Equipo::findOrfail($id)->where('id', $id)->first();
         $userActual = Auth::user()->id;
+        $userIsAdmin = Auth::user()->hasRole('Admin');
 
         $idEstadoEquipo = DB::table('equipos')
             ->select('equipos_estados_users_ordenes.id_estado')
@@ -410,35 +440,54 @@ class UsuarioController extends Controller
 
         $accesorios = $equipo->accesorios()->select('nombre')->get();
         $orden = $equipo->orden()->where('finalizado', 0)->first();
-        $fechaIngreso = DB::table('equipos')
-        ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
-        ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
-        ->where('equipos.id', $id)
-        ->where('ordenesservicio.finalizado', 0)
-        ->where('equipos_estados_users_ordenes.id_estado', 1)
-        ->select('equipos_estados_users_ordenes.created_at')
-        ->first();
 
-        $comentarios = DB::table('equipos_estados_users_ordenes')
-        ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
-        ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
-        ->join('users_ordenes', 'equipos_estados_users_ordenes.id_orden', 'users_ordenes.id_orden')
-        ->where('users_ordenes.estadoAsignacion', 1)
-        ->where('users_ordenes.id_user', $userActual)
-        ->where('users_ordenes.id_orden', $orden->id)
-        ->whereIn('equipos_estados_users_ordenes.id_estado', [1])
-        ->get();
+        if($orden || $userIsAdmin){
+            $ordenEquipo = $equipo->orden()->first();
 
-        $equipo->accesorios = $accesorios;    
-        $equipo->fechacompromiso = $orden->fechacompromiso;
-        $equipo->fechaIngreso = $fechaIngreso;
-        $equipo->estado = $idEstadoEquipo->id_estado; 
-        $equipo->comentarios = $comentarios;
 
-        $collection->push($equipo);
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->where('equipos.id', $id)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->first();
+    
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->join('users_ordenes', 'equipos_estados_users_ordenes.id_orden', 'users_ordenes.id_orden')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->where('users_ordenes.id_orden', $ordenEquipo->id)
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1, 4, 9, 10])
+            ->get();
+
+            
+            $equipo->accesorios = $accesorios;    
+            $equipo->fechacompromiso = $ordenEquipo->fechacompromiso;
+            $equipo->fechaIngreso = $fechaIngreso;
+            $equipo->estado = $idEstadoEquipo->id_estado; 
+            $equipo->comentarios = $comentarios;
+
+            $ordenPresupuestado = $equipo->orden()->where('finalizado', 1)->first();
+
+            if($ordenPresupuestado){      
+                $orden_presupuesto = DB::table('ordenservicios_presupuestos')
+                ->where('id_orden', $ordenPresupuestado->id)->first();
+            }
+
+            if(!empty($orden_presupuesto)){
+                $equipo->presupuesto = $orden_presupuesto->presupuesto;
+            }
+    
+            $collection->push($equipo);
+
+            return DataTables()->collection($collection)->toJson();
+        }
+        }
         
-        return DataTables()->collection($collection)->toJson();
-    }
+        
+       
 
 
     public function iniciarDiagnostico(Request $request){
@@ -461,12 +510,29 @@ class UsuarioController extends Controller
     }
 
     public function reasignarDiagnostico(Request $request){
-
-        $userActual = Auth::user()->id;
         
         $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
         $estado = Estado::findOrfail(9);
         $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->first();
+
+
+        $userActualDiagnosticoEquipo = DB::table('users_ordenes')
+            ->where('estadoAsignacion', 1)
+            ->where('id_orden', $orden->id)
+            ->select('id_user')
+            ->pluck('id_user')
+            ->first();
+
+       
+
+        if($userActualDiagnosticoEquipo == $request->get('idTecnico')){
+                return response()->json([
+                    'error' => 'El Equipo esta asignado a usted mismo. Debe elegir otro técnico.'
+                ]);
+            
+        }
+        
+        $userActual = Auth::user()->id;
 
         DB::table('equipos_estados_users_ordenes')->insert([
                         'id_equipo' => $equipo->id,
@@ -477,7 +543,7 @@ class UsuarioController extends Controller
         ]);
 
         DB::table('users_ordenes')
-        ->where('id_user', $userActual)
+        ->where('id_user', $userActualDiagnosticoEquipo)
         ->where('id_orden', $orden->id)
         ->update(['estadoAsignacion' => 0]);
         
@@ -492,47 +558,625 @@ class UsuarioController extends Controller
         ]);
     }
 
-    public function getTecnicosReasignacion(){
-        $userActual = Auth::user()->id;
-        $tecnicos = User::role('Tecnico')->select('id', 'name', 'lastname')->get();
-        $tecnicos->prepend(['user_id' => $userActual]);
+    public function getTecnicosReasignacion($id){
 
+        $estadoEquipo = DB::table('equipos')
+        ->select('equipos_estados_users_ordenes.id_estado')
+        ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+        ->where('equipos.id', $id)
+        ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+        ->first();
+
+        if($estadoEquipo->id_estado == 4){
+            return response()->json([
+                'error' => 'El Equipo no puede ser reasignado, su diagnóstico ha finalizado.'
+            ]);
+        }
+
+        if($estadoEquipo->id_estado == 10){
+            return response()->json([
+                'error' => 'El Equipo no puede ser reasignado, su diagnóstico ha sido presupuestado.'
+            ]);
+        }
+        
+        if($estadoEquipo->id_estado == 8){
+            return response()->json([
+                'error' => 'El Equipo no puede ser reasignado, su reparación ha sido realizada.'
+            ]);
+        }
+        
+        $tecnicos = User::with("roles")->whereHas("roles", function($q) {
+            $q->whereIn("name", ["Admin","Tecnico"]);
+        })->select('id', 'name', 'lastname')->get();
+        $userActual = Auth::user()->id;
+
+        $tecnicos->prepend(['user_id' => $userActual]);
+        
         return DataTables()->collection($tecnicos)->toJson();
     }
 
-    public function getFinalizarDiagnostico(){
-        $collection = new Collection;
-        $userActual = Auth::user()->id;
-        $collection->push(['user_id' => $userActual]);
+    public function getFinalizarDiagnostico($id){
 
-        return DataTables()->collection($collection)->toJson(); 
+        $estadoEquipo = DB::table('equipos')
+        ->select('equipos_estados_users_ordenes.id_estado')
+        ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+        ->where('equipos.id', $id)
+        ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+        ->first();
+
+        if($estadoEquipo->id_estado !== 3){
+            return response()->json([
+                'error' => 'Su Equipo debe pasar por una etapa de inicio de Diagnóstico, inicielo e intente nuevamente.'
+            ]);
+        }
+
+        return; 
     }
 
-    public function finalizarDiagnostico(Request $request){
-        $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
+    public function finalizarDiagnostico(Request $request){ 
+
+            $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
+            $userActual = Auth::user()->id;
+            $estado = Estado::findOrfail(4)->where('id', 4)->first();
+            $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->first();
+            $fechaFin = Carbon::now();
+    
+            DB::table('equipos_estados_users_ordenes')->insert([
+                            'id_equipo' => $equipo->id,
+                            'id_estado' => $estado->id,
+                            'id_user' => $userActual,
+                            'id_orden' => $orden->id,
+                            'descripcion' => $request->get('detalle'),
+            ]);
+            
+            DB::table('ordenesservicio')
+            ->where('id', $orden->id)
+            ->update(['finalizado' => 1, 'fechafin' => $fechaFin]);
+
+            return response()->json([
+                'success' => 'El Diagnóstico ha sido registrado!'
+            ]);
+
+    }
+
+    public function getDetalleEquipoDiagnostico($id){
+
+        $collection = new Collection;
+        
+        $equipo = Equipo::findOrfail($id)->where('id', $id)->first();
+        $orden = Equipo::findOrfail($id)->orden()->where('finalizado', 0)->first();
+
+        $equipoWithSeccion = Equipo::find($equipo->id)->select('id','id_seccionestante')->where('id', $equipo->id)->with('seccionEstante:id,nombre,id_estante')->first();
+
+        $estante = Estante::findOrfail($equipoWithSeccion->seccionEstante->id_estante)->where('id',$equipoWithSeccion->seccionEstante->id_estante)->first();
+
+        $comentario = DB::table('equipos_estados_users_ordenes')
+        ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+        ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+        ->where('equipos_estados_users_ordenes.id_orden', $orden->id)
+        ->where('equipos_estados_users_ordenes.id_estado', 1)
+        ->first();
+
+        $accesorios = $equipo->accesorios()->select('nombre')->get();
+
+        $equipo->accesorios = $accesorios;    
+        $equipo->comentario = $comentario;
+        $equipo->estante = $estante->nombre;
+        $equipo->seccionEstante = $equipoWithSeccion->seccionEstante->nombre;
+
+        $collection->push($equipo);
+
+         return DataTables()->collection($collection)->toJson();
+
+        
+    }
+
+    public function estaDiagnosticado($id){        
+
+        $estadoEquipo = DB::table('equipos')
+        ->select('equipos_estados_users_ordenes.id_estado')
+        ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+        ->where('equipos.id', $id)
+        ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+        ->first();
+
+
+        if(!empty($estadoEquipo)){
+            if($estadoEquipo->id_estado !== 4){
+                if($estadoEquipo->id_estado >= 1 && $estadoEquipo->id_estado < 4 || $estadoEquipo->id_estado == 9){
+                    return response()->json([
+                        'error' => 'El Equipo debe estar Diagnosticado para realizar su presupuesto.'
+                    ]);
+                } else if($estadoEquipo->id_estado == 10){
+                    return response()->json([
+                        'error' => 'El Equipo ya ha sido presupuestado.'
+                    ]);
+                }
+            }
+        }
+        
+
+    }
+
+
+    public function presupuestarEquipo(Request $request){
+        $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id', $request->get('idEquipo'))->first();
+        $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 1)->first();
         $userActual = Auth::user()->id;
-        $estado = Estado::findOrfail(4);
-        $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->first();
+
+        DB::table('ordenservicios_presupuestos')
+        ->insert(['presupuesto' => $request->get('presupuesto'), 'id_orden' => $orden->id, 'presupuestado' => true]);
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+            'id_equipo' => $equipo->id,
+            'id_estado' => 10,
+            'id_user' => $userActual,
+            'id_orden' => $orden->id,
+            'descripcion' => $request->get('detalle'),
+        ]);
+
+        return response()->json([
+            'success' => 'El Presupuesto ha sido registrado.!'
+        ]);
+
+    }
+    public function aceptarPresupuesto(Request $request){
+        $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id', $request->get('idEquipo'))->first();
+        $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 1)->first();
+        $userActual = Auth::user()->id;
+
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+            'id_equipo' => $equipo->id,
+            'id_estado' => 11,
+            'id_user' => $userActual,
+            'id_orden' => $orden->id,
+        ]);
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+            'id_equipo' => $equipo->id,
+            'id_estado' => 11,
+            'id_user' => $userActual,
+            'id_orden' => $orden->id,
+        ]);
+
+        $nuevaOrdenReparacion = new OrdenServicio();
+        $nuevaOrdenReparacion->fechacompromiso = $request->get('fechacompaceptacion');
+        $nuevaOrdenReparacion->finalizado = 0;
+        $nuevaOrdenReparacion->id_equipo = $equipo->id;
+        $nuevaOrdenReparacion->id_servicio = 2;
+        $nuevaOrdenReparacion->save();
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+            'id_equipo' => $equipo->id,
+            'id_estado' => 5,
+            'id_user' => $userActual,
+            'id_orden' => $nuevaOrdenReparacion->id,
+            'descripcion' => $request->get('detalleaceptpre')
+        ]);
+
+
+        return response()->json([
+            'success' => 'El presupuesto ha sido Aceptado.!'
+        ]);
+
+    }
+
+    public function verReparacion(){
+        
+        return view('asignaciones.reparaciones.index');
+    }
+
+    public function getEquiposReparacion(){
+        $equipos = Equipo::select('id', 'serie', 'modelo', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
+
+        foreach ($equipos as $key => $value) {
+            //Comenzar a utilizar el criterio de "where id_servicio = 1 si es diag, = 2 si es rep para clasificar."
+            $ordenEquipo = Equipo::findOrfail($value->id)->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+            if($ordenEquipo != null){
+                $ultimoEstado = $ordenEquipo->estados()->first();
+                if($ultimoEstado->id != 5){
+                    unset($equipos[$key]);
+                    
+                } else {
+                    $value->fechaCompromiso = $ordenEquipo->fechacompromiso;
+
+                    $fechaIngreso = DB::table('equipos')
+                    ->select('equipos_estados_users_ordenes.created_at')
+                    ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+                    ->where('equipos.id', $value->id)
+                    ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+                    ->first();
+
+                    $value->fechaIngreso = $fechaIngreso->created_at;
+
+                }
+            } else {
+                unset($equipos[$key]);
+            }
+        }
+        
+         return DataTables()->collection($equipos)->addColumn('action', function($row){
+            return '
+            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>';
+        })
+        ->rawColumns(['action'])
+        ->toJson();
+    }
+
+    public function getDetalleEquipoReparacion($id){
+
+        $collection = new Collection;
+        
+        $equipo = Equipo::findOrfail($id)->where('id', $id)->first();
+        $orden = Equipo::findOrfail($id)->orden()->where('finalizado', 1)->first();
+        $ordenEquipo = Equipo::findOrfail($id)->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+        $equipoWithSeccion = Equipo::find($equipo->id)->select('id','id_seccionestante')->where('id', $equipo->id)->with('seccionEstante:id,nombre,id_estante')->first();
+
+        $estante = Estante::findOrfail($equipoWithSeccion->seccionEstante->id_estante)->where('id',$equipoWithSeccion->seccionEstante->id_estante)->first();
+        $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->whereIn('equipos_estados_users_ordenes.id_orden', [$orden->id, $ordenEquipo->id])
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1, 4, 9, 10, 5])
+            ->get();
+
+
+        $accesorios = $equipo->accesorios()->select('nombre')->get();
+
+        $equipo->accesorios = $accesorios;    
+        $equipo->comentarios = $comentarios;
+        $equipo->estante = $estante->nombre;
+        $equipo->seccionEstante = $equipoWithSeccion->seccionEstante->nombre;
+
+        $collection->push($equipo);
+
+         return DataTables()->collection($collection)->toJson();
+
+        
+    }
+
+    public function asignarReparacion(Request $request){
+        $this->validate($request, [
+            'idTecnico' => 'required',
+            'idEquipos' => 'required',
+        ],
+        [
+            'idTecnico.required' => 'Debes elegir un Técnico.',
+            'idEquipos.required' => 'Debes elegir uno o varios Equipos.'
+        ]
+        );
+
+        $tecnico = User::find($request->get('idTecnico'));
+        $equipos = $request->get('idEquipos');
+        $estado = Estado::findOrfail(6);
+        
+
+        $gerente = Auth::user();
+
+        foreach ($equipos as $equipo) {
+            $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+
+            DB::table('equipos_estados_users_ordenes')->insert([
+                'id_equipo' => $equipo,
+                'id_estado' => $estado->id,
+                'id_user' => $gerente->id,
+                'id_orden' => $orden->id,
+            ]);
+
+            DB::table('users_ordenes')->insert([
+                'estadoAsignacion' => true,
+                'id_user' => $tecnico->id,
+                'id_orden' => $orden->id,
+            ]);
+            
+        }
+
+        return redirect()->route('reparaciones');
+    }
+
+    public function getAsignacionesReparacionRealizadas(){
+        //dd($equipos = Equipo::findOrfail('4')->where('id', 4)->first());
+
+       $equiposAsignados = DB::table('users_ordenes')
+       ->join('ordenesservicio', 'users_ordenes.id_orden', '=', 'ordenesservicio.id')
+       ->join('equipos', 'ordenesservicio.id_equipo', '=', 'equipos.id')
+       ->join('equipos_estados_users_ordenes', 'equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo')
+       ->where('estadoAsignacion', 1)
+       ->where('equipos_estados_users_ordenes.id_estado', 6)
+       ->where('ordenesservicio.id_servicio', 2)
+       ->get();
+
+       $collection = new Collection;
+       
+        foreach ($equiposAsignados as $equipo) {
+            $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca', 'id_user')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name')->first();
+
+            $estadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+            
+            $estado = Estado::find($estadoEquipo->id_estado)->where('id', $estadoEquipo->id_estado)->first();
+
+            
+            $orden = $equipos->orden()->where('id_servicio', 2)->first();
+
+            $user = DB::table('equipos')->select('users.name', 'users.lastname')
+            ->join('ordenesservicio','equipos.id', '=', 'ordenesservicio.id_equipo' )
+            ->join('users_ordenes','ordenesservicio.id', '=', 'users_ordenes.id_orden' )
+            ->join('users','users_ordenes.id_user', '=', 'users.id')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->where('equipos.id', $equipo->id_equipo)
+            ->where('users_ordenes.id_orden', $orden->id)
+            ->first();
+
+            
+            $equipos->name = $user->name . " " . $user->lastname;
+            $equipos->estado = $estado->nombre;
+                
+            if($estado->id >= 6 && $estado->id <= 9){
+                $collection->push($equipos);
+            }  
+
+        }
+
+        return DataTables()->collection($collection)->addColumn('action', function($row){
+            return '
+            <div style="text-align:center">
+            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>
+            <a href="#" class="btn-sm btn btn-danger reBtn" data-id="'.$row->id.'">Reasignar</a>
+            </div>';
+        })
+        ->rawColumns(['action'])
+        ->toJson();
+    }
+
+    public function verAsignacionesReparacionRealizadas(){
+        return view('asignaciones.reparaciones.asignacionesRealizadas');
+    }
+
+    
+
+    public function getAsignacionReparacion($id){
+
+        $collection = new Collection;
+
+        $equipo = Equipo::findOrfail($id)->where('id', $id)->first();
+        $userIsAdmin = Auth::user()->hasRole('Admin');
+
+        $idEstadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $id)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+        $accesorios = $equipo->accesorios()->select('nombre')->get();
+        $orden = $equipo->orden()->where('id_servicio', 2)->first();
+
+        if($orden || $userIsAdmin){
+            $ordenEquipo = $equipo->orden()->first();       //Tener en cuenta para cuando se habiliten nuevas ordenes, cambiar esta consulta a una ordenada de forma desc respecto a fecha creacion y con id_servicio 1.
+
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->where('equipos.id', $id)
+            ->where('equipos_estados_users_ordenes.id_estado', 6)
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->first();
+
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->whereIn('equipos_estados_users_ordenes.id_orden', [$orden->id, $ordenEquipo->id])
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1, 4, 8, 9, 10, 5])
+            ->get();
+
+            
+            $equipo->accesorios = $accesorios;    
+            $equipo->fechacompromiso = $orden->fechacompromiso;
+            $equipo->fechaIngreso = $fechaIngreso;
+            $equipo->estado = $idEstadoEquipo->id_estado; 
+            $equipo->comentarios = $comentarios;
+
+    
+            $collection->push($equipo);
+
+            return DataTables()->collection($collection)->toJson();
+        }
+    }
+
+    public function reasignarReparacion(Request $request){
+        
+        $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
+        $estado = Estado::findOrfail(9);
+        $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+
+
+        $userActualReparacionEquipo = DB::table('users_ordenes')
+            ->where('estadoAsignacion', 1)
+            ->where('id_orden', $orden->id)
+            ->select('id_user')
+            ->pluck('id_user')
+            ->first();
+
+        if($userActualReparacionEquipo == $request->get('idTecnico')){
+            return response()->json([
+                'error' => 'El Equipo esta asignado a usted mismo. Debe elegir otro técnico.'
+            ]);
+        }
+        
+        $userActual = Auth::user()->id;
 
         DB::table('equipos_estados_users_ordenes')->insert([
                         'id_equipo' => $equipo->id,
                         'id_estado' => $estado->id,
                         'id_user' => $userActual,
                         'id_orden' => $orden->id,
-                        'descripcion' => $request->get('detalle2'),
+                        'descripcion' => $request->get('detalle'),
         ]);
 
-        DB::table('ordenesservicio')
-        ->where('id', $orden->id)
-        ->update(['finalizado' => 1, 'fechafin' => '2022-10-30 17:32:46
-        ']);
+        DB::table('users_ordenes')
+        ->where('id_user', $userActualReparacionEquipo)
+        ->where('id_orden', $orden->id)
+        ->update(['estadoAsignacion' => 0]);
+        
+        DB::table('users_ordenes')->insert([
+            'estadoAsignacion' => 1,
+            'id_user' => $request->get('idTecnico'),
+            'id_orden' => $orden->id,
+        ]);
 
         return response()->json([
-            'success' => 'El Diagnóstico ha sido registrado!'
+            'success' => 'El Equipo ha sido Reasignado'
+        ]);
+    }
+
+    public function verMisAsignacionesReparacionRealizadas(){
+        return view('asignaciones.reparaciones.vermisreparacionesasignadas');
+    }
+        
+    public function getMisAsignacionesReparacion(){
+
+        $userActual = Auth::user()->id;
+        $equiposAsignados = DB::table('users_ordenes')
+        ->select('equipos_estados_users_ordenes.id_equipo')
+        ->join('ordenesservicio', 'users_ordenes.id_orden', '=', 'ordenesservicio.id')
+        ->join('equipos', 'ordenesservicio.id_equipo', '=', 'equipos.id')
+        ->join('equipos_estados_users_ordenes', 'equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo')
+        ->where('estadoAsignacion', 1)
+        ->where('users_ordenes.id_user', $userActual)
+        ->where('ordenesservicio.finalizado', 0)
+        ->where('ordenesservicio.id_servicio', 2)
+        ->groupBy('equipos_estados_users_ordenes.id_equipo')
+        ->get();
+        
+
+        //->whereIn('equipos_estados_users_ordenes.id_estado', [1, 2, 3])
+
+        $collection = new Collection;
+        
+         foreach ($equiposAsignados as $equipo) {   
+            $estadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+            
+            // dd($estadoEquipo->id_estado);
+            if($estadoEquipo->id_estado == '6' || $estadoEquipo->id_estado == '7' || $estadoEquipo->id_estado == '9'){
+                $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca','modelo', 'id_user', 'id_seccionestante')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name', 'seccionEstante:id,nombre,id_estante')->first();   
+    
+                $estante = Estante::findOrfail($equipos->seccionEstante->id_estante)->where('id',$equipos->seccionEstante->id_estante)->first();
+                   
+                $equipos->estante = $estante->nombre;
+
+                // dd($estadoEquipo->id_estado);
+                $estado = Estado::find($estadoEquipo->id_estado)->where('id', $estadoEquipo->id_estado)->first();
+                
+                // dd($estado->nombre);
+
+                $equipos->estado = $estado->nombre;
+
+                $collection->push($equipos);
+            }
+
+            }
+            
+            return DataTables()->collection($collection)->addColumn('action', function($row){
+                return '
+                <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>
+                <a href="#" class="btn-sm btn btn-danger reBtn" data-id="'.$row->id.'">Reasignar</a>
+                <a href="#" class="btn-sm btn btn-success finBtn" data-id="'.$row->id.'">Finalizar</a>';
+            })
+            ->rawColumns(['action'])
+            ->toJson();
+    }
+
+    public function iniciarReparacion(Request $request){
+        $userActual = Auth::user()->id;
+        
+        $equipo = Equipo::findOrfail($request->get('id'))->where('id',  $request->get('id'))->first();
+        $estado = Estado::findOrfail(7);
+        $orden = Equipo::findOrfail($request->get('id'))->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+                        'id_equipo' => $equipo->id,
+                        'id_estado' => $estado->id,
+                        'id_user' => $userActual,
+                        'id_orden' => $orden->id,
         ]);
 
-
+        return response()->json([
+            'success' => 'El Equipo ha entrado en un estado de Reparación'
+        ]);
     }
+
+    public function getFinalizarReparacion($id){
+
+        $estadoEquipo = DB::table('equipos')
+        ->select('equipos_estados_users_ordenes.id_estado')
+        ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+        ->where('equipos.id', $id)
+        ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+        ->first();
+
+        if($estadoEquipo->id_estado !== 7){
+            return response()->json([
+                'error' => 'Su Equipo debe pasar por una etapa de inicio de Reparación, inicielo e intente nuevamente.'
+            ]);
+        }
+
+        return; 
+    }
+
+    public function finalizarReparacion(Request $request){ 
+
+
+        $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
+        $userActual = Auth::user()->id;
+        $estado = Estado::findOrfail(8)->where('id', 8)->first();
+        $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->where('id_servicio', 2)->first();
+        $fechaFin = Carbon::now();
+
+        DB::table('equipos_estados_users_ordenes')->insert([
+                        'id_equipo' => $equipo->id,
+                        'id_estado' => $estado->id,
+                        'id_user' => $userActual,
+                        'id_orden' => $orden->id,
+                        'descripcion' => $request->get('detalle'),
+        ]);
+
+        if($request->get("repuestos")){
+            foreach ($request->get("repuestos") as $cantidad) {
+                DB::table('repuestos_ordenes')->insert([
+                    'id_orden' => $orden->id,
+                    'id_repuesto' => $cantidad,
+                ]);
+            }
+        }
+
+        
+        
+        DB::table('ordenesservicio')
+        ->where('id', $orden->id)
+        ->update(['finalizado' => 1, 'fechafin' => $fechaFin]);
+
+        return response()->json([
+            //'success' => 'La Reparacion ha sido registrada!'
+            'success' => $request->all()
+        ]);
+
+}
+
+
+    
+
 
     
 }

@@ -14,6 +14,7 @@ use App\Models\TipoAccesorio;
 use \Illuminate\Support\Facades\Auth;
 use App\Models\Estado;
 use App\Models\OrdenServicio;
+use App\Models\Repuesto;
 use DB;
 
 class EquipoController extends Controller
@@ -108,6 +109,7 @@ class EquipoController extends Controller
         $ordenServicio->finalizado = false;
         $ordenServicio->fechacompromiso = $request->get('fecha');
         $ordenServicio->id_equipo = $equipo->id;
+        $ordenServicio->id_servicio = 1;
         $ordenServicio->save();
 
 
@@ -163,15 +165,23 @@ class EquipoController extends Controller
     public function fetch(Request $request)
     {
         $idEstante = $request->get('value');
-        $secciones = Estante::findOrfail($idEstante)->seccionesEstante()->get();
-
+        $secciones = Estante::findOrfail($idEstante)->seccionesEstante()->get(); 
 
         $seleccione = "";
 
         $output = '<option value="">Seleccionar... '.ucfirst($seleccione).'</option>';
         foreach($secciones as $seccion)
             {
-            $output .= '<option value="'.$seccion->id.'">'.$seccion->nombre.'</option>';
+            if($request->get("repuesto")){
+                $repuesto = Repuesto::where('id',$request->get("repuesto"))->first();
+                if($repuesto->id_seccionestante == $seccion->id){
+                    $output .= '<option value="'.$seccion->id.'" selected>'.$seccion->nombre.'</option>';
+                } else {
+                    $output .= '<option value="'.$seccion->id.'">'.$seccion->nombre.'</option>';
+                }
+            }else{
+                $output .= '<option value="'.$seccion->id.'" selected>'.$seccion->nombre.'</option>';
+            }
             }
             echo $output;
     }

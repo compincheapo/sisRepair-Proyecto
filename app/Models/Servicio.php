@@ -20,4 +20,8 @@ class Servicio extends Model
     public function tipoServicio(){
         return $this->hasMany(TipoServicio::class, 'id');
     }
+
+    public function ordenes(){
+        return $this->hasMany(OrdenServicio::class, 'id_servicio', 'id');
+    }
 }

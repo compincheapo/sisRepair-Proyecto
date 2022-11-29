@@ -4,7 +4,7 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Alta Equipo</h3>
+            <h3 class="page__heading">Alta Repuesto</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -23,8 +23,30 @@
                             </div>
                             @endif
 
-                            {!! Form::open(array('route'=> 'equipos.store', 'method'=> 'POST')) !!}
+                            {!! Form::open(array('route'=> 'repuestos.store', 'method'=> 'POST')) !!}
                                 <div class="row">
+
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <div class="form-group"> 
+                                            <label for="usuario">Tipo Repuesto</label>
+                                            {!! Form::select('tiporepuesto', $tiposrepuestos, null, ['class' => 'form-control js-example-basic-single']) !!}
+                                         </div>
+                                    </div>
+
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <div class="form-group"> 
+                                            <label for="usuario">Marca</label>
+                                            {!! Form::select('marca', $marcas, null, ['class' => 'form-control js-example-basic-single']) !!}
+                                         </div>
+                                    </div>   
+
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <div class="form-group"> 
+                                            <label for="modelo">Modelo</label>
+                                            {!! Form::text('modelo', null, array('class' => 'form-control'))!!}
+                                         </div>
+                                    </div>                
+
                                     <div class="col-xs-6 col-sm-6 col-md-6">
                                         <div class="form-group">
                                             <label for="serie">Número Serie</label>
@@ -34,32 +56,16 @@
 
                                     <div class="col-xs-6 col-sm-6 col-md-6">
                                         <div class="form-group">
-                                            <label for="modelo">Modelo</label>
-                                            {!! Form::text('modelo', null, array('class' => 'form-control'))!!}
+                                            <label for="serie">Cantidad</label>
+                                            {!! Form::text('cantidad', null, array('class' => 'form-control'))!!}
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-xs-6 col-sm-6 col-md-6">
                                         <div class="form-group">
-                                            <label for="tipoequipo">Tipo Equipo</label>
-
-                                                {!! Form::select('tipoequipo', $tiposequipo, null, ['class' => 'form-control']) !!}
+                                            <label for="precio">Precio</label>
+                                            {!! Form::text('precio', null, array('class' => 'form-control'))!!}
                                         </div>
-                                    </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="marca">Marca</label>
-                                            {!! Form::select('marca', $marcas, null, ['class' => 'form-control']) !!}
-
-                                        </div>
-                                    </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="usuario">Cliente</label>
-                                            {!! Form::select('usuario', $usuarios, null, ['class' => 'form-control js-example-basic-single']) !!}
-                                         </div>
                                     </div>
                                     
                                     <div class="col-xs-6 col-sm-6 col-md-6">
@@ -84,41 +90,23 @@
                                     </div>
 
 
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                    <div class="form-group"> 
-                                      <label for="accesorios">Accesorios</label>
-                                      <select class="js-example-basic-multiple form-control" name="accesorios[]" multiple="multiple">
-                                            @foreach ($tiposaccesorios as $tipoaccesorio)
-                                                <option value="{{$tipoaccesorio->id}}">{{$tipoaccesorio->nombre}}</option>
-                                            @endforeach
-                                      </select>
-                                     </div>
-                                    </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="fecha">Fecha Prometida</label>
-                                           {!!Form::date('fecha', null, ['class' => 'form-control'] )!!} 
-                                        </div>
-                                   </div>
-
                                     <div class="col-xs-12 col-sm-12 col-md-12">
                                         <div class="form-group"> 
-                                            <label for="descripcion">Detalles del Equipo</label>
-                                            <div class="form-control" style="visibility: hidden; padding:0; height:20px"></div>
+                                            <label for="descripcion">Detalles del Repuesto</label>
+                                            <div class="form-control" style="visibility: hidden; padding:0; height:20px">
+                                            </div>
                                             {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;'])!!}                                        
                                         </div>
-                                   </div>
-                                    
-                                </>
-                                
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-xs-12 col-sm-12 col-md-12">
-                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                    </div>
+                            
                                 </div>
-                            </div>
+                                <div class="row mt-2">
+                                    <div class="col-xs-12 col-sm-12 col-md-12">
+                                           <button type="submit" class="btn btn-primary">Guardar</button>
+                                    </div>
+                                </div>
                             {!! Form::close() !!}
+
                     </div>
                 </div>
             </div>
