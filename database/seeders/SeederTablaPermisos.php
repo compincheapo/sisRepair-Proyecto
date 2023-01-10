@@ -21,6 +21,7 @@ class SeederTablaPermisos extends Seeder
         $role2 = Role::create(['name' => 'Cliente']);
         $role3 = Role::create(['name' => 'Vendedor']);
         $role4 = Role::create(['name' => 'Tecnico']);
+        $role4 = Role::create(['name' => 'Tercero']);
 
         Permission::create(['name' => 'ver-usuario'])->syncRoles([$role1, $role2, $role3, $role4]); 
         Permission::create(['name' => 'crear-usuario'])->syncRoles([$role1]); 
@@ -75,6 +76,10 @@ class SeederTablaPermisos extends Seeder
         Permission::create(['name' => 'crear-repuestos'])->syncRoles([$role1]); 
         Permission::create(['name' => 'editar-repuestos'])->syncRoles([$role1]); 
         Permission::create(['name' => 'borrar-repuestos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'ver-equiporepuestos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'crear-equiporepuestos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'editar-equiporepuestos'])->syncRoles([$role1]); 
+        Permission::create(['name' => 'borrar-equiporepuestos'])->syncRoles([$role1]); 
 
 
     }

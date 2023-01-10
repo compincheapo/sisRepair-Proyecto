@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
 use App\Models\Estante;
 use App\Models\OrdenServicio;
 use Carbon\Carbon;
-
+use App\Models\Repuesto;
 
 
 class UsuarioController extends Controller
@@ -1152,17 +1152,20 @@ class UsuarioController extends Controller
                         'descripcion' => $request->get('detalle'),
         ]);
 
-        if($request->get("repuestos")){
-            foreach ($request->get("repuestos") as $cantidad) {
+        if($request->get("repuestos") && $request->get("cantidad")){
+            for ($i=0; $i < count($request->get("repuestos")) ; $i++) { 
+                $repuesto = Repuesto::where('id', $request->get("repuestos")[$i])->first();
+                $repuesto->cantidad = ($repuesto->cantidad - $request->get("cantidad")[$i]);
+                $repuesto->save();
+                
                 DB::table('repuestos_ordenes')->insert([
                     'id_orden' => $orden->id,
-                    'id_repuesto' => $cantidad,
+                    'id_repuesto' => $request->get("repuestos")[$i],
+                    'cantidad' => $request->get("cantidad")[$i],
                 ]);
             }
         }
 
-        
-        
         DB::table('ordenesservicio')
         ->where('id', $orden->id)
         ->update(['finalizado' => 1, 'fechafin' => $fechaFin]);

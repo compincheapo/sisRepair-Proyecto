@@ -15,7 +15,9 @@ use \Illuminate\Support\Facades\Auth;
 use App\Models\Estado;
 use App\Models\OrdenServicio;
 use App\Models\Repuesto;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
+
 
 class EquipoController extends Controller
 {
@@ -57,7 +59,7 @@ class EquipoController extends Controller
         //Usuarios con rol cliente
         $usuarios = User::with("roles")->whereHas("roles", function($q) {
                     $q->whereIn("name", ['cliente']);
-                     })->pluck('name', 'id');
+                     })->select('id', 'name', 'lastname')->get();
         
         //dd($usuarios);
         $estantes = Estante::select('nombre', 'id')->get();
@@ -179,11 +181,71 @@ class EquipoController extends Controller
                 } else {
                     $output .= '<option value="'.$seccion->id.'">'.$seccion->nombre.'</option>';
                 }
-            }else{
+            } else if($request->get("equipo")){
+                $equipo = Equipo::where('id',$request->get("equipo"))->first();
+                if($equipo->id_seccionestante == $seccion->id){
+                    $output .= '<option value="'.$seccion->id.'" selected>'.$seccion->nombre.'</option>';
+                } else {
+                    $output .= '<option value="'.$seccion->id.'">'.$seccion->nombre.'</option>';
+                }
+            }
+            else{
                 $output .= '<option value="'.$seccion->id.'" selected>'.$seccion->nombre.'</option>';
             }
             }
             echo $output;
+    }
+
+    public function getEquiposPresupuestados(){
+        $equiposDiagnosticoPresupuestado = DB::table('equipos_estados_users_ordenes')
+        ->select('equipos_estados_users_ordenes.id_equipo')
+        ->join('ordenesservicio', 'equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+        ->where('equipos_estados_users_ordenes.id_estado', 10)
+        ->where('ordenesservicio.id_servicio', 1)
+        ->where('ordenesservicio.finalizado', 1)
+        ->get();
+
+       $collection = new Collection;
+       
+        foreach ($equiposDiagnosticoPresupuestado as $equipo) {
+            $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca', 'id_user', 'id_tipoequipo', 'modelo')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name', 'tipoequipo:id,nombre')->first();
+
+            $estadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+            
+            $estado = Estado::find($estadoEquipo->id_estado)->where('id', $estadoEquipo->id_estado)->first();
+
+            $user = DB::table('equipos')->select('users.name', 'users.lastname')
+            ->join('ordenesservicio','equipos.id', '=', 'ordenesservicio.id_equipo' )
+            ->join('users_ordenes','ordenesservicio.id', '=', 'users_ordenes.id_orden' )
+            ->join('users','users_ordenes.id_user', '=', 'users.id')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->where('equipos.id', $equipo->id_equipo)->first();
+
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->first();
+            
+            $equipos->name = $user->name . " " . $user->lastname;
+            $equipos->estado = $estado->nombre;
+            $equipos->fechaIngreso = $fechaIngreso->created_at;
+                
+            if($estado->id == 10){
+                $collection->push($equipos);
+            }  
+
+        }
+
+        return DataTables()->collection($collection)->toJson();
     }
 
 }

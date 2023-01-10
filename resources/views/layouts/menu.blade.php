@@ -50,6 +50,11 @@ body.sidebar-mini .main-sidebar:after {
     color: #FFF !important;
 }
 
+.main-sidebar .sidebar-menu li a {
+    padding: 0px;
+    color:white;
+}
+
 </style>
 
 @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
@@ -130,17 +135,19 @@ body.sidebar-mini .main-sidebar:after {
                     <a href="{{ url('/equipos') }}" class="primario">Gestión Equipos Cliente </a> 
                 </li>
             @endif
-            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+
+            @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Vendedor")
                 <hr style="margin-top:1px; margin-bottom:1px">
-                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
+                <li class="{{ Request::is('/pagodiagnostico') ? 'active' : '' }}">
+                    <a href="{{ url('/pagodiagnostico') }}" class="primario">Registrar Pago Diagnóstico </a>
                 </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
             @endif
 
-            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+            @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Vendedor")
                 <hr style="margin-top:1px; margin-bottom:1px">
                 <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
+                    <a href="{{ url('/pepe') }}" class="primario">Registrar Pago Reparación </a>
                 </li>
                 <hr style="margin-top:1px; margin-bottom:1px">
             @endif
@@ -189,6 +196,13 @@ body.sidebar-mini .main-sidebar:after {
                     <a href="{{ url('/asignacion/vermisdiagnosticosasignados') }}" class="primario">Mis Asignaciones</a>
                 </li>
             @endif
+
+            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
+                </li>
+            @endif
         </ul>
 </li>
 @endif
@@ -212,6 +226,14 @@ body.sidebar-mini .main-sidebar:after {
                     <a href="{{ url('/asignacion/vermisreparacionesasignadas') }}" class="primario">Mis Asignaciones</a>
                 </li>
             @endif
+
+            @if(Auth::user()->getRoleNames()->first() == "Cliente")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
+                </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
+            @endif
         </ul>
 </li>
 @endif
@@ -228,14 +250,21 @@ body.sidebar-mini .main-sidebar:after {
             <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
                 <a href="{{ url('/pepe') }}" class="primario">Registrar Abandono</a>
             </li>
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Gestionar Equipo Repuesto</a>
+            <li class="{{ Request::is('/equiporepuestos') ? 'active' : '' }}">
+                <a href="{{ url('/equiporepuestos') }}" class="primario" style="height:50px">Gestionar Equipo Repuesto</a>
             </li>
             <li class="{{ Request::is('/repuestos') ? 'active' : '' }}">
                 <a href="{{ url('/repuestos') }}" class="primario">Gestionar Repuesto</a>
             </li>
         </ul>
 </li>
+@endif
+@if(Auth::user()->getRoleNames()->first() == "Admin")
+
+@can('ver-estantes') <!-- Crear permiso y actualizar esta parte. -->
+</li><li class="{{ Request::is('/auditoria') ? 'active' : '' }}"><a class="nav-link primario" href="{{ url('/auditoria') }}"><i class="fas fa-book"></i> <span>Auditoría</span></a></li>
+@endcan
+
 @endif
 
 <script>

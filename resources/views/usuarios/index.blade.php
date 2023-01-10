@@ -15,10 +15,10 @@
                   <div class="card-header">
                     <h4>Filtros de Búsqueda</h4>
                     <div class="card-header-action">
-                      <a data-collapse="#mycard-collapse" class="btn btn-icon btn-info" href="#"><i class="fas fa-minus"></i></a>
+                      <a data-collapse="#mycard-collapse" class="btn btn-icon btn-info" href="#"><i class="fas fa-plus"></i></a>
                     </div>
                   </div>
-                  <div class="collapse show" id="mycard-collapse">
+                  <div class="collapse" id="mycard-collapse">
                     <div class="card-body">
                     <form class="form" action="{{ route('usuarios.index')}}" method="GET">
                     <div class="form-row">

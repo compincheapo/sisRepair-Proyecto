@@ -58,5 +58,17 @@ class EstadoSeeder extends Seeder
             'nombre' => 'Presupuesto Aceptado',
             'descripcion' => 'Equipo con diagnóstico finalizado y donde el Gerente realiza el presupuesto de dicho trabajo según los problemas encontrados y que derivan a la solución',
         ]);
+        Estado::create([ 
+            'nombre' => 'Diagnóstico Pagado',
+            'descripcion' => 'Equipo con Diagnóstico finalizado y el cliente realiza el pago.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Reparación Pagada',
+            'descripcion' => 'Equipo con Reparación finalizada y el cliente realiza el pago.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Equipo Repuesto',
+            'descripcion' => 'Equipo que se registró para que se utilice como repuesto para reparaciones futuras.',
+        ]);
     }
 }

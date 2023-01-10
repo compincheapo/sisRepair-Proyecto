@@ -181,6 +181,8 @@ return [
         Barryvdh\DomPDF\ServiceProvider::class,
         Yajra\DataTables\DataTablesServiceProvider::class,
 
+        //Laravel Auditing
+        OwenIt\Auditing\AuditingServiceProvider::class,
 
     ],
 

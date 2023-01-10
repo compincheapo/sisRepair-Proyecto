@@ -4,7 +4,7 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Alta Equipo</h3>
+            <h3 class="page__heading">Alta Equipo Repuesto</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -23,7 +23,7 @@
                             </div>
                             @endif
 
-                            {!! Form::open(array('route'=> 'equipos.store', 'method'=> 'POST')) !!}
+                            {!! Form::open(array('route'=> 'equiporepuestos.store', 'method'=> 'POST')) !!}
                                 <div class="row">
                                     <div class="col-xs-6 col-sm-6 col-md-6">
                                         <div class="form-group">
@@ -53,17 +53,6 @@
                                             {!! Form::select('marca', $marcas, null, ['class' => 'form-control']) !!}
 
                                         </div>
-                                    </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="usuario">Cliente</label>
-                                            <select name="usuario" class="form-control js-example-basic-single">
-                                                @foreach($usuarios as $usuario)
-                                                    <option value="{{$usuario->id}}">{{$usuario->name}} {{$usuario->lastname}}</option>    
-                                                @endforeach
-                                            </select>
-                                         </div>
                                     </div>
                                     
                                     <div class="col-xs-6 col-sm-6 col-md-6">
@@ -99,13 +88,6 @@
                                      </div>
                                     </div>
 
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="fecha">Fecha Prometida</label>
-                                           {!!Form::date('fecha', null, ['class' => 'form-control'] )!!} 
-                                        </div>
-                                   </div>
-
                                     <div class="col-xs-12 col-sm-12 col-md-12">
                                         <div class="form-group"> 
                                             <label for="descripcion">Detalles del Equipo</label>
@@ -113,9 +95,7 @@
                                             {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;'])!!}                                        
                                         </div>
                                    </div>
-                                    
-                                </>
-                                
+                                                                    
                             </div>
                             <div class="row mt-2">
                                 <div class="col-xs-12 col-sm-12 col-md-12">

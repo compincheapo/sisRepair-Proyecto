@@ -11,10 +11,12 @@ use App\Models\User;
 use App\Models\TipoAccesorio;
 use App\Models\Estado;
 use App\Models\OrdenServicio;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Equipo extends Model
+class Equipo extends Model implements Auditable
 {
     use HasFactory;
+    use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
         'serie',

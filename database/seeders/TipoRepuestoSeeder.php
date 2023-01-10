@@ -38,5 +38,9 @@ class TipoRepuestoSeeder extends Seeder
             'nombre' => 'RAM',
             'descripcion' => 'Memoria para Notebook, Netbook, PC, etc.',
         ]);
+        TipoRepuesto::create([ 
+            'nombre' => 'Placa Madre',
+            'descripcion' => 'Placa base o madre donde se conectan los componentes de la computadora.',
+        ]);
     }
 }

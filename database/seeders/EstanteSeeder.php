@@ -20,7 +20,7 @@ class EstanteSeeder extends Seeder
         ]);
         Estante::create([ 
             'nombre' => 'Estante 2',
-            'descripcion' => 'Estante para equipos tipo Notebook, Netbook.',
+            'descripcion' => 'Estante para equipos cliente tipo Notebook, Netbook.',
         ]);
         Estante::create([ 
             'nombre' => 'Estante 3',

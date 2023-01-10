@@ -143,7 +143,7 @@
                                       </div>
                                         {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
                                     </div>
-                                </div>
+                              </div>
                               <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
                               <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="tecnicos">Siguiente</button>
                           </div>
@@ -186,6 +186,7 @@
   </div>
 </div>
 </form>
+
 
 @endsection
 @section('scripts')
@@ -662,7 +663,7 @@ $('body').on('click', '#btnGuardar', function (){
 //----------------------------- Finalizar Reparación -----------------------------
 
 $('body').on('click', '.finBtn', function (){
-
+limpiarModal();
 var id = $(this).data('id');
 $('#id').val(id);
 
@@ -761,6 +762,7 @@ $('body').on('click', '#enviar', function (){
       console.log(idEquipo, "idEquipo");
       console.log(detalle, "detalle");
       console.log(global, "arreglo repuestos");
+      console.log(cant, "arreglo cantidad");
     
       $.ajaxSetup({
       headers: {
@@ -775,7 +777,8 @@ $('body').on('click', '#enviar', function (){
         data: {
           'idEquipo': idEquipo,
           'detalle': detalle,
-          'repuestos': global
+          'repuestos': global,
+          'cantidad': cant
         },
         success: function(response){
             console.log(response);
@@ -785,8 +788,9 @@ $('body').on('click', '#enviar', function (){
               'Reparación Finalizada!',
               response.success, "success")           
             }
-
+            limpiarModal();
             $('.modalCreateForm').modal('hide');
+
         },
         error: function(error){
             if(error){ 
@@ -897,182 +901,219 @@ $('body').on('click', '#enviar', function (){
                 }
             }
     
-    var global = [];
+    var global;
+    var cant;
 
     $('#equipos').on('click', function(e){
-                var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
-                var rows_selected = table.column(0).checkboxes.selected().count();
-                var limitStock = false;
-                var whiteSpace = false;
-                var zeroNumber = false;
-                var eCaracter = false;
-                var negativeNumber = false;
+    var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
+    var rows_selected = table.column(0).checkboxes.selected().count();
+    var limitStock = false;
+    var whiteSpace = false;
+    var zeroNumber = false;
+    var eCaracter = false;
+    var negativeNumber = false;
+    global = [];
+    cant = [];
 
+    table.rows( {selected: false} ).every( function () {
 
-                table.rows( {selected: true} ).every( function () {
+        //Con node podemos interactuar con el input.  
+        rowNode = this.node();
 
-                //Con node podemos interactuar con el input.  
-                rowNode = this.node();
+        //Esta seccion borra los 
+        $(rowNode).find("input[type='number']").val("");
+    });
+    
+    table.rows( {selected: true} ).every( function () {
 
-                //Con data podemos interactuar de forma mas sencilla con datos de tabla como lo dado abajo en el for.
-                rowData = this.data();
-                console.log(rowData);
-                
-                console.log($(rowNode).find("input[type='number']").val(), 'holi');
+    //Con node podemos interactuar con el input.  
+    rowNode = this.node();
 
-                //Esta seccion borra los 
-                $(rowNode).find("input[type='number']").val("");
-              } );
-              
+    //Con data podemos interactuar de forma mas sencilla con datos de tabla como lo dado abajo en el for.
+    rowData = this.data();
+    console.log(rowData);
+
+    console.log($(rowNode).find("input[type='number']").val(), 'holi');
+      
+      if($(rowNode).find("input[type='number']").val()!= ""){
+          if(rowData.cantidad < $(rowNode).find("input[type='number']").val()){
+            Swal.fire({
+              icon: 'error',
+              title: 'Error en cantidad repuestos especificada, es mayor al Stock (' + rowData.cantidad
+              + ')  disponible.',
+              text: 'En Repuesto: ' + rowData.tiporepuesto.nombre + ', Marca: ' + 
+              rowData.marca.nombre + ', Modelo:' +
+              rowData.modelo + ', Serie:' +
+              rowData.serie  + '.',
+            })
+
+              limitStock = true;
+          }
+        } else if($(rowNode).find("input[type='number']").val() === "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'No ha especificado cantidad en Repuesto.',
+                text: 'En Repuesto: ' + rowData.tiporepuesto.nombre + ', Marca: ' + 
+                rowData.marca.nombre + ', Modelo:' +
+                rowData.modelo + ', Serie:' +
+                rowData.serie  + '.',
+              })
             
-                
-                for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
-                  console.log(table.$('input[type=number]')[index].value);
-                  if(table.$('input[type=number]')[index].value != ""){
-                    if(table.rows({selected: true}).data()[index].cantidad < table.$('input[type=number]')[index].value){
-                      Swal.fire({
-                        icon: 'error',
-                        title: 'Error en cantidad repuestos especificada, es mayor al Stock (' + table.rows({selected: true}).data()[index].cantidad
-                        + ')  disponible.',
-                        text: 'En Repuesto: ' + table.rows({selected: true}).data()[index].tiporepuesto.nombre + ', Marca: ' + 
-                        table.rows({selected: true}).data()[index].marca.nombre + ', Modelo:' +
-                        table.rows({selected: true}).data()[index].modelo + ', Serie:' +
-                        table.rows({selected: true}).data()[index].serie  + '.',
-                      })
+            whiteSpace = true;
+        }
 
-                        limitStock = true;
-                    }
-                  } else {
-                      Swal.fire({
-                          icon: 'error',
-                          title: 'No ha especificado cantidad en Repuesto.',
-                          text: 'En Repuesto: ' + table.rows({selected: true}).data()[index].tiporepuesto.nombre + ', Marca: ' + 
-                          table.rows({selected: true}).data()[index].marca.nombre + ', Modelo:' +
-                          table.rows({selected: true}).data()[index].modelo + ', Serie:' +
-                          table.rows({selected: true}).data()[index].serie  + '.',
-                        })
-                      
-                      whiteSpace = true;
-                  }
+        if ($(rowNode).find("input[type='number']").val() == '0'){
+          Swal.fire({
+                icon: 'error',
+                title: 'No es válido 0 Repuestos',
+                text: 'En Repuesto: ' + rowData.tiporepuesto.nombre + ', Marca: ' + 
+                rowData.marca.nombre + ', Modelo:' +
+                rowData.modelo + ', Serie:' +
+                rowData.serie  + '.',
+              })
+              
+            zeroNumber = true;
+        }
 
-                  if (table.$('input[type=number]')[index].value == '0'){
-                    Swal.fire({
-                          icon: 'error',
-                          title: 'No es válido 0 Repuestos',
-                          text: 'En Repuesto: ' + table.rows({selected: true}).data()[index].tiporepuesto.nombre + ', Marca: ' + 
-                          table.rows({selected: true}).data()[index].marca.nombre + ', Modelo:' +
-                          table.rows({selected: true}).data()[index].modelo + ', Serie:' +
-                          table.rows({selected: true}).data()[index].serie  + '.',
-                        })
-                        
-                      zeroNumber = true;
-                  }
+        if ($(rowNode).find("input[type='number']").val() < 0){
+          Swal.fire({
+                icon: 'error',
+                title: 'No es válido números negativos',
+                text: 'En Repuesto: ' + rowData.tiporepuesto.nombre + ', Marca: ' + 
+                rowData.marca.nombre + ', Modelo:' +
+                rowData.modelo + ', Serie:' +
+                rowData.serie  + '.',
+              })
+              
+            negativeNumber = true;
+        }
+      
 
-                  if (table.$('input[type=number]')[index].value < 0){
-                    Swal.fire({
-                          icon: 'error',
-                          title: 'No es válido números negativos',
-                          text: 'En Repuesto: ' + table.rows({selected: true}).data()[index].tiporepuesto.nombre + ', Marca: ' + 
-                          table.rows({selected: true}).data()[index].marca.nombre + ', Modelo:' +
-                          table.rows({selected: true}).data()[index].modelo + ', Serie:' +
-                          table.rows({selected: true}).data()[index].serie  + '.',
-                        })
-                        
-                      negativeNumber = true;
-                  }
-                  }
-                    
+    });
 
-                if(!rows_selected){
-                    Swal.fire('Debe de elegir al menos un Repuesto.')
-                } else if(rows_selected && !limitStock && !whiteSpace && !zeroNumber && !eCaracter && !negativeNumber){
-                    stepper1.next();
-                }
+    
+    if(!rows_selected){
+          Swal.fire('Debe de elegir al menos un Repuesto.')
+      } else if(rows_selected && !limitStock && !whiteSpace && !zeroNumber && !eCaracter && !negativeNumber){
+          stepper1.next();
+      }
+  
+  
+      
+      tbodySelectedEquipments.innerHTML = "";
+  
+      table.rows( {selected: true} ).every( function () {
+          //Con node podemos interactuar con el input.  
+          rowNode = this.node();
+  
+          //Con data podemos interactuar de forma mas sencilla con datos de tabla como lo dado abajo en el for.
+          rowData = this.data();
+          console.log(rowData);
+  
+          console.log(rowData.id);
+          //console.log(table.rows({selected: true}).data()[index]);
+          //Insertando Fila
+          var newRow = tbodySelectedEquipments.insertRow();
+  
+          
+          //Celda Tipo Repuesto
+          var celdaTipoRepuesto = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoTipoRepuesto = document.createTextNode(rowData.tiporepuesto.nombre);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaTipoRepuesto.appendChild(contenidoTipoRepuesto);
+  
+          //Celda Marca
+          var celdaMarca = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoMarca = document.createTextNode(rowData.marca.nombre);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaMarca.appendChild(contenidoMarca);
+  
+            //Celda Modelo
+          var celdaModelo = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoModelo = document.createTextNode(rowData.modelo);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaModelo.appendChild(contenidoModelo);
+  
+          //Celda Serie
+          var celdaSerie = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoSerie = document.createTextNode(rowData.serie);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaSerie.appendChild(contenidoSerie);
+  
+          //Celda Estante
+          var celdaEstante = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoEstante = document.createTextNode(rowData.seccion_estante.estante.nombre);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaEstante.appendChild(contenidoEstante);
+  
+          //Celda Seccion Estante
+          var celdaSeccionEstante = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoSeccionEstante = document.createTextNode(rowData.seccion_estante.nombre);
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaSeccionEstante.appendChild(contenidoSeccionEstante);
+  
+          //Celda Cantidad
+          var celdaCantidad = newRow.insertCell();
+          //Insertando Contenido tipo texto.
+          var contenidoCantidad = document.createTextNode($(rowNode).find("input[type='number']").val());
+          //Insertando sobre la celda el contenido tipo texto.
+          celdaCantidad.appendChild(contenidoCantidad);
+  
+  
+          global.push(rowData.id);
+          cant.push($(rowNode).find("input[type='number']").val());
+  
+          //Celda Btn
+          var celdaBtn = newRow.insertCell();
+          celdaBtn.setAttribute('style', 'text-align:center;');
+          var btn = document.createElement("button");
+          btn.innerHTML = "X";
+          btn.setAttribute('class', 'btn btn-danger');
+          btn.setAttribute('id', rowData.id);
+          
+          btn.onclick = function (e) {    
+              uncheckEquipment(e);
+          };
+  
+          celdaBtn.appendChild(btn);
+      
+    
+    });
 
-                
-                tbodySelectedEquipments.innerHTML = "";
+    $('#tecnicos').on('click', function(e){
+            stepper1.next();
+    });
+});
 
-                for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
-                    console.log(table.rows({selected: true}).data()[index].id);
-                   //console.log(table.rows({selected: true}).data()[index]);
-                    //Insertando Fila
-                    var newRow = tbodySelectedEquipments.insertRow();
-
-                    
-                    //Celda Tipo Repuesto
-                    var celdaTipoRepuesto = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoTipoRepuesto = document.createTextNode(table.rows({selected: true}).data()[index].tiporepuesto.nombre);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaTipoRepuesto.appendChild(contenidoTipoRepuesto);
-
-                    //Celda Marca
-                    var celdaMarca = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoMarca = document.createTextNode(table.rows({selected: true}).data()[index].marca.nombre);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaMarca.appendChild(contenidoMarca);
-
-                     //Celda Modelo
-                     var celdaModelo = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoModelo = document.createTextNode(table.rows({selected: true}).data()[index].modelo);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaModelo.appendChild(contenidoModelo);
-
-                    //Celda Serie
-                    var celdaSerie = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoSerie = document.createTextNode(table.rows({selected: true}).data()[index].serie);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaSerie.appendChild(contenidoSerie);
-
-                    //Celda Estante
-                    var celdaEstante = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoEstante = document.createTextNode(table.rows({selected: true}).data()[index].seccion_estante.estante.nombre);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaEstante.appendChild(contenidoEstante);
-
-                    //Celda Seccion Estante
-                    var celdaSeccionEstante = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoSeccionEstante = document.createTextNode(table.rows({selected: true}).data()[index].seccion_estante.nombre);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaSeccionEstante.appendChild(contenidoSeccionEstante);
-
-                    //Celda Cantidad
-                    var celdaCantidad = newRow.insertCell();
-                    //Insertando Contenido tipo texto.
-                    var contenidoCantidad = document.createTextNode(table.$('input[type=number]')[index].value);
-                    //Insertando sobre la celda el contenido tipo texto.
-                    celdaCantidad.appendChild(contenidoCantidad);
+  $('.closeBtn').click(function() {
+      limpiarModal()
+  });
 
 
-                    global.push(table.$('input[type=number]')[index].value);
 
-                    //Celda Btn
-                    var celdaBtn = newRow.insertCell();
-                    celdaBtn.setAttribute('style', 'text-align:center;');
-                    var btn = document.createElement("button");
-                    btn.innerHTML = "X";
-                    btn.setAttribute('class', 'btn btn-danger');
-                    btn.setAttribute('id', table.rows({selected: true}).data()[index].id);
-                    
-                    btn.onclick = function (e) {    
-                        uncheckEquipment(e);
-                    };
+  function limpiarModal(){
+    var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
+    tbodySelectedEquipments.innerHTML = "";
+    stepper1.to(1);
+    var detalle = $('#descripcion').val("");
+    global = [];
+    cant = [];
 
-                    celdaBtn.appendChild(btn);
-                }
+    table.$("input[type=checkbox]").prop("checked", false);
 
-               
-            });
+      table.rows( {selected: true} ).every( function () {
+        rowNode = this.node();
+        $(rowNode).find("input[type='number']").val("");
+      });
 
-            $('#tecnicos').on('click', function(e){
-                    stepper1.next();
-            });
-
+      table.rows().deselect();
+  }
 
 });
 </script>

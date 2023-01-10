@@ -25,8 +25,28 @@ class SeccionEstanteSeeder extends Seeder
         ]);
         SeccionesEstante::create([ 
             'nombre' => 'Seccion A',
-            'descripcion' => 'Notebook DELL.',
+            'descripcion' => 'Notebook, Netbook DELL.',
             'id_estante' => '2'
+        ]);
+        SeccionesEstante::create([ 
+            'nombre' => 'Seccion B',
+            'descripcion' => 'Notebook, Netbook ACER.',
+            'id_estante' => '2'
+        ]);
+        SeccionesEstante::create([ 
+            'nombre' => 'Seccion C',
+            'descripcion' => 'Notebook, Netbook ASUS .',
+            'id_estante' => '2'
+        ]);
+        SeccionesEstante::create([ 
+            'nombre' => 'Seccion A',
+            'descripcion' => 'Impresoras Varias.',
+            'id_estante' => '3'
+        ]);
+        SeccionesEstante::create([ 
+            'nombre' => 'Seccion B',
+            'descripcion' => 'Impresoras Compaq.',
+            'id_estante' => '3'
         ]);
     }
 }

@@ -15,6 +15,9 @@ use App\Http\Controllers\SeccionesEstanteController;
 use App\Http\Controllers\EquipoController;
 use App\Http\Controllers\TipoRepuestoController;
 use App\Http\Controllers\RepuestoController;
+use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\EquipoRepuestoController;
+use App\Http\Controllers\PagoDiagnosticoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +78,7 @@ Route::get('/tecnicos', [UsuarioController::class, 'getTecnicos'])->name('tecnic
 
 Route::resource('/repuestos', RepuestoController::class)->middleware('auth');
 
+Route::resource('/equiporepuestos', EquipoRepuestoController::class)->middleware('auth');
 
 
 
@@ -145,4 +149,22 @@ Route::get('/asignacion/finalizarreparacion/{id}', [UsuarioController::class, 'g
 Route::post('/asignacion/finalizarreparacion', [UsuarioController::class, 'finalizarReparacion'])->name('finalizarReparacion');
 
 Route::get('/repuestosReparacion', [RepuestoController::class, 'getRepuestosReparacion'])->name('repuestosReparacion');
+
+
+//Auditoria
+
+Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
+
+//Pagos
+
+Route::resource('/pagodiagnostico', PagoDiagnosticoController::class)->except(['update', 'edit', 'destroy', 'show'])->middleware('auth');
+
+Route::get('/equiposPresupuestados', [EquipoController::class, 'getEquiposPresupuestados'])->name('equiposPresupuestados');
+
+
+Route::post('/pagos/registrarpagodiagnostico', [PagoDiagnosticoController::class, 'registrarPagoDiagnostico'])->name('registrarPagoDiagnostico');
+
+
+
+
 

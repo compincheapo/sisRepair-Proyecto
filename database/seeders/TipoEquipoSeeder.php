@@ -19,12 +19,16 @@ class TipoEquipoSeeder extends Seeder
             'descripcion' => 'Portatil de mediana-grande prestación',
         ]);
         TipoEquipo::create([ 
-            'nombre' => 'Notebook',
+            'nombre' => 'Netbook',
             'descripcion' => 'Portatil de pequeñas prestaciones',
         ]);
         TipoEquipo::create([ 
             'nombre' => 'PC Escritorio',
-            'descripcion' => 'Computadora de Escritorio',
+            'descripcion' => 'Computadora de Escritorio de mesa.',
+        ]);
+        TipoEquipo::create([ 
+            'nombre' => 'Impresora',
+            'descripcion' => 'Impresoras en general.',
         ]);
     }
 }

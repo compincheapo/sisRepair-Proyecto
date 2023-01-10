@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Equipo;
 use App\Models\Servicio;
+use App\Models\Pago;
+use App\Models\OrdenPresupuesto;
+
 
 class OrdenServicio extends Model
 {
@@ -55,5 +58,19 @@ class OrdenServicio extends Model
 
     public function servicio(){
         return $this->belongsTo(Servicio::class, 'id_servicio', 'id');
+    }
+
+    public function pagosorden(){
+        return $this->belongsToMany(
+            Pago::class,
+            'ordenservicios_pagos',
+            'id_orden',
+            'id_pago'
+            );
+    }
+
+    public function presupuestoOrden()
+    {
+        return $this->hasOne(OrdenPresupuesto::class, 'id_orden', 'id');
     }
 }
