@@ -170,7 +170,7 @@
                     </table>
 
 
-                            <p class="text-center">¿Está seguro de asignar estos Equipos?</p>
+                            <p class="text-center">¿Está seguro de asignar estos Repuestos?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
                             <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar" onclick="event.preventDefault()">
                         </div>

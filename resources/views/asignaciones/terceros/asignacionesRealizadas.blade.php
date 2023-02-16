@@ -15,7 +15,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Asignaciones Diagnóstico Realizadas</h3>
+            <h3 class="page__heading">Asignaciones a Terceros Realizadas</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -41,7 +41,7 @@
                                     <th>Serie</th>
                                     <th>Marca</th>
                                     <th>Cliente</th>
-                                    <th>Técnico</th>
+                                    <th>Tercero</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -95,7 +95,7 @@
           <button type="button" class="btn btn-primary" id="btnGuardar">Reasignar</button>
           <button type="button" class="btn btn-primary" id="btnPre">Presupuestar</button>
           <button type="button" class="btn btn-primary" id="btnAceptarPre">Aceptar Presupuesto</button>
-          <a class="btn btn-danger mr-2" id="rechBtn"  onclick="event.preventDefault();">Rechazar Presupuesto</a>
+          <button type="button" class="btn btn-primary" id="btnRegistrarRet">Registrar Retiro</button>
           <button type="button" class="btn btn-secondary closeBtn" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
@@ -153,7 +153,7 @@ $(document).ready(function() {
     //Tabla principal
     var tablita = $('#example').DataTable( {
         "serverSide": true,
-        "ajax":  "{{route('asignacionesdiagnosticorealizadas')}}",
+        "ajax":  "{{route('asignacionestercerosrealizadas')}}",
         "columns": [
             {data: 'id'},
             {data: 'serie'},
@@ -170,7 +170,7 @@ $(document).ready(function() {
     $('body').on('click', '.detBtn', function (){
         var id = $(this).data('id');
         console.log(id);
-        var url = '{{route("diagnosticoasignado", ":id")}}';
+        var url = '{{route("equipoasignado", ":id")}}';
         url = url.replace(':id', id);
 
         $.ajax({
@@ -186,7 +186,6 @@ $(document).ready(function() {
 
                 $('#btnGuardar').addClass("d-none");
                 $('#btnPre').addClass("d-none");
-                $('#rechBtn').addClass("d-none");
                 $('#nameError').addClass("d-none");
                 $('#emailError').addClass("d-none");
                 $('#btnFinalizarDiag').addClass("d-none");
@@ -240,8 +239,15 @@ $(document).ready(function() {
                 if(response.data[0].presupuesto){
                     $('#presupuestoRealizado').val(response.data[0].presupuesto);
                     $('#divPresupuesto').removeClass('d-none');
-                    $('#btnAceptarPre').removeClass('d-none');
-                    $('#rechBtn').removeClass("d-none");
+                    if(response.data[0].servicio == 1){
+                        $('#btnAceptarPre').removeClass('d-none');
+                    }
+                }
+
+                if(response.data[0].estado != 2){
+                    $('#btnRegistrarRet').addClass("d-none");
+                } else {
+                    $('#btnRegistrarRet').removeClass("d-none");
                 }
                 
 
@@ -300,7 +306,7 @@ $(document).ready(function() {
                     }
                     
                 }
-
+                
                 if(response.data[0].comentarios){
 
                     //Div hermano.
@@ -369,6 +375,14 @@ $(document).ready(function() {
                         buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
                     }
 
+                    if(response.data[0].comentarios[i].id_estado == 5){
+                        buttonH2.innerHTML = 'Detalle Asignación Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
+                    if(response.data[0].comentarios[i].id_estado == 16){
+                        buttonH2.innerHTML = 'Detalle Retiro por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+
                     headerH2.appendChild(buttonH2);
 
                     //divCollapse
@@ -419,7 +433,7 @@ $(document).ready(function() {
         var id = $(this).data('id');
         $('#id').val(id);
 
-        var url = '{{route("getTecnicosReasignacion", ":id")}}';
+        var url = '{{route("getTecnicosyTercerosReasignacion", ":id")}}';
         url = url.replace(':id', id);
 
 
@@ -442,6 +456,7 @@ $(document).ready(function() {
                 
                 $('#btnGuardar').removeClass("d-none");
                 $('#btnPre').addClass("d-none");
+                $('#btnRegistrarRet').addClass("d-none");
                 $('#nameError').addClass("d-none");
                 $('#emailError').addClass("d-none");
                 $('#divRowBro').addClass("d-none");
@@ -496,7 +511,7 @@ $(document).ready(function() {
                     //label Group
                     var labelGroup = document.createElement("label");
                     labelGroup.setAttribute('id', 'labelGroup');
-                    labelGroup.innerHTML = 'Técnicos'
+                    labelGroup.innerHTML = 'Técnicos y Terceros'
                     divGroup.appendChild(labelGroup);
 
                     //Select técnicos
@@ -511,7 +526,7 @@ $(document).ready(function() {
                     
                         var option = document.createElement("option");
                         option.setAttribute('value', response.data[i].id);
-                        option.innerHTML =  response.data[i].lastname + ' ' + response.data[i].name;
+                        option.innerHTML =    '(' + response.data[i].roles[0].name + ') ' + response.data[i].lastname + ' ' + response.data[i].name ;
                         selectTecnicos.appendChild(option);
                     
                     }
@@ -605,7 +620,7 @@ $(document).ready(function() {
     $('body').on('click', '.preBtn', function (){
         var id = $(this).data('id');
         $('#id').val(id);
-        var url = '{{route("estaDiagnosticado", ":id")}}';
+        var url = '{{route("estaPresupuestado", ":id")}}';
         url = url.replace(':id', id);
 
         $.ajax({
@@ -629,11 +644,11 @@ $(document).ready(function() {
                     $('.modal-title').html('Presupuestar Diagnóstico');
                     $('#divRowBro').addClass("d-none");
                     $('#btnAceptarPre').addClass('d-none');
+                    $('#btnRegistrarRet').addClass('d-none');
                     
 
                     $('#btnGuardar').addClass("d-none");
                     $('#btnPre').removeClass("d-none");
-                    $('#rechBtn').addClass("d-none");
                     $('#btnFinalizarDiag').addClass("d-none");
                     
                     if(document.getElementById('selectTecnicos')){
@@ -791,81 +806,102 @@ $(document).ready(function() {
         })
     });
 
+    $('body').on('click', '#btnRegistrarRet', function (){
+      var id = $('#id').val();
+    
+      $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+      });
+
+
+      $.ajax({
+        url: "{{route('registrarRetiro')}}",
+        method: 'POST',
+        data: {
+          'id': id
+        },
+        success: function(response){
+            if(response){
+              $('#example').DataTable().ajax.reload();
+              Swal.fire(
+              'Retiro Registrado!',
+              response.success, "success")           
+            }
+            $('.modalCreateForm').modal('hide');
+        },
+        error: function(error){
+            if(error){ 
+              console.log(error)
+            }
+        }
+      })
+  });
+
+
     $('body').on('click', '#btnAceptarPre', function (){
 
-        Swal.fire({
-            title: 'Estas seguro de Aceptar el Presupuesto?',
-            text: "Al aceptar el Presupuesto, se creará una nueva Orden de Servicio para Reparación y se procederá a reparar el Equipo",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Si, aceptar!',
-            cancelButtonText: 'Cancelar'
-            }).then((result) => {
-            if (result.isConfirmed) {
-                $('#exampleModal').modal('hide');
-                $('#exampleModal2').modal('show');
+        $('#exampleModal').modal('hide');
+        $('#exampleModal2').modal('show');
 
-                $('#exampleModalLabel2').html('Detalles aceptación presupuesto');
+        $('#exampleModalLabel2').html('Detalles aceptación presupuesto');
 
-                $('#divRowBro').addClass("d-none");
-                $('#btnPre').addClass("d-none");
-                $('#rechBtn').addClass("d-none");
-                $('#btnAceptarPre').addClass('d-none');
-                $('#fechacompaceptacion').removeClass('d-none');
-                
+        $('#divRowBro').addClass("d-none");
+        $('#btnPre').addClass("d-none");
+        $('#btnAceptarPre').addClass('d-none');
+        $('#fechacompaceptacion').removeClass('d-none');
+        
 
-                $('#btnGuardar').addClass("d-none");
-                $('#btnPre').removeClass("d-none");
-                $('#btnFinalizarDiag').addClass("d-none");
-                
-                if(document.getElementById('selectTecnicos')){
-                    $('#selectTecnicos').addClass("d-none");
-                }
+        $('#btnGuardar').addClass("d-none");
+        $('#btnPre').removeClass("d-none");
+        $('#btnFinalizarDiag').addClass("d-none");
+        
+        if(document.getElementById('selectTecnicos')){
+            $('#selectTecnicos').addClass("d-none");
+        }
 
-                if(document.getElementById('labelGroup')){
-                    $('#labelGroup').addClass("d-none");
-                }
-                
-                if(document.getElementById('labelGroup2')){
-                    $('#labelGroup2').addClass("d-none");
-                }
+        if(document.getElementById('labelGroup')){
+            $('#labelGroup').addClass("d-none");
+        }
+        
+        if(document.getElementById('labelGroup2')){
+            $('#labelGroup2').addClass("d-none");
+        }
 
-                if(document.getElementById('detalle')){
-                    $('#detalle').addClass("d-none");
-                }
+        if(document.getElementById('detalle')){
+            $('#detalle').addClass("d-none");
+        }
 
-                if(document.getElementById('divCol')){
-                    document.getElementById('divCol').remove();
-                }
+        if(document.getElementById('divCol')){
+            document.getElementById('divCol').remove();
+        }
 
-                if(document.getElementById('divCol2')){
-                    document.getElementById('divCol2').remove();
-                }
+        if(document.getElementById('divCol2')){
+            document.getElementById('divCol2').remove();
+        }
 
-                if(document.getElementById('divCol3')){
-                    document.getElementById('divCol3').remove();
-                }
+        if(document.getElementById('divCol3')){
+            document.getElementById('divCol3').remove();
+        }
 
-                if(document.getElementById('divCol4')){
-                    document.getElementById('divCol4').remove();
-                }
+        if(document.getElementById('divCol4')){
+            document.getElementById('divCol4').remove();
+        }
 
-                if(document.getElementById('divCol5')){
-                    document.getElementById('divCol5').remove();
-                }
-                
-                if(document.getElementById('newCreated')){
-                    document.getElementById('newCreated').remove();
-                }
+        if(document.getElementById('divCol5')){
+            document.getElementById('divCol5').remove();
+        }
+        
+        if(document.getElementById('newCreated')){
+            document.getElementById('newCreated').remove();
+        }
 
-                if(document.getElementById('accordionExample')){
-                    document.getElementById('accordionExample').remove();
-                }
+        if(document.getElementById('accordionExample')){
+            document.getElementById('accordionExample').remove();
+        }
 
-            }
-        });
+
 
     });
 
@@ -887,8 +923,7 @@ $(document).ready(function() {
             data: {
                 'idEquipo': idEquipo,
                 'fechacompaceptacion': fechacompaceptacion,
-                'detalleaceptpre': detalleaceptpre,
-                'cliente': 'false'
+                'detalleaceptpre': detalleaceptpre
             },
             success: function(response){
                 if(response){
@@ -907,56 +942,6 @@ $(document).ready(function() {
                 }
             }
         })
-    });
-
-
-    $('body').on('click', '#rechBtn', function (){
-
-        Swal.fire({
-            title: 'Estas seguro de Rechazar el Presupuesto?',
-            text: "Al rechazar el Presupuesto, se deberá registrar el pago del Diagnóstico y registrar el retiro del Equipo.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Si, rechazar!',
-            cancelButtonText: 'Cancelar'
-            }).then((result) => {
-            if (result.isConfirmed) {
-                var id = $('#id').val();
-        
-                $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-                });
-
-                $.ajax({
-                    url: "{{route('rechazarPresupuesto')}}",
-                    method: 'POST',
-                    data: {
-                    'id': id,
-                    'cliente': 'false'
-                    },
-                    success: function(response){
-                        if(response){
-                            $('#example').DataTable().ajax.reload();
-
-                            Swal.fire(
-                            'Presupuesto Rechazado!',
-                            response.success, "success")           
-                            }
-                            $('.modalCreateForm').modal('hide');
-                    },
-                    error: function(error){
-                        if(error){ 
-                        console.log(error)
-                        }
-                    }
-                })
-            }
-            });
-      
     });
 
 

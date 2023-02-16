@@ -11,7 +11,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Registrar Pago Diagnóstico</h3>
+            <h3 class="page__heading">Registrar Ingreso Equipos Tercero</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -35,25 +35,25 @@
                             <div class="step" data-target="#test-l-1">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Equipos Diagnosticados</span>
+                                <span class="bs-stepper-label">Equipos Clientes</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-2">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">2</span>
-                                <span class="bs-stepper-label">Tipo de Pago</span>
+                                <span class="bs-stepper-label">Estados y Detalles Equipos</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Registrar Pago</span>
+                                <span class="bs-stepper-label">Registro</span>
                                 </button>
                             </div>
                         </div>
-                        {!! Form::open(array('route'=> 'registrarPagoDiagnostico', 'method'=> 'POST', 'id' => 'frm-example')) !!}
+                        {!! Form::open(array('route'=> 'registrarIngresoEquiposTercero', 'method'=> 'POST', 'id' => 'frm-example')) !!}
 
                         <div class="bs-stepper-content">
                             <div id="test-l-1" class="content">
@@ -62,11 +62,17 @@
                                             <thead>
                                                 <tr>
                                                     <th width="10px">ID</th>
-                                                    <th>Tipo Equipo</th>
+                                                    <th>Serie</th>
                                                     <th>Marca</th>
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
+                                                    <th>Tercero</th>
                                                     <th>Fecha Ingreso</th>
+                                                    <th>Fecha Compromiso</th>
+                                                    <th>Servicio</th>
+                                                    <th>Acciones</th>
+                                                    <th style="display:none;">Estado</th>
+                                                    <th style="display:none;">Descripcion</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -75,18 +81,28 @@
                             <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="equipos">Siguiente</button>
                             
                          </div>
+
                         <div id="test-l-2" class="content">
-                            <div class="form-group">
-                                <label for="tipopago">Tipo de Pago</label>
-                                <select name="tipopago" class="form-control" id="tipopago">
-                                    @foreach($tipospago as $tipopago)
-                                        <option value="{{$tipopago->id}}">{{$tipopago->nombre}}</option>
-                                    @endforeach
-                                </select>
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <table id="selected-equipment-detalle" class="table" style="width:100%" >
+                                    <thead>
+                                        <tr>
+                                            <th>Serie</th>
+                                            <th>Marca</th>
+                                            <th>Modelo</th>
+                                            <th>Servicio</th>
+                                            <th>Acción</th>
+                                            <th>Detalle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                
+                                </table>
                             </div>
-                          
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="btnTipoPago">Siguiente</button>
+                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="detalles">Siguiente</button>
                         </div>
 
                         <div id="test-l-3" class="content">
@@ -94,11 +110,13 @@
                             <table id="selected-equipment" class="table" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th>Tipo Equipo</th>
+                                        <th>Serie</th>
                                         <th>Marca</th>
                                         <th>Modelo</th>
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
+                                        <th>Fecha Compromiso</th>
+                                        <th>Servicio</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -108,12 +126,12 @@
                             
                             </table>
 
-
-                            <p class="text-center">¿Está seguro de registrar el pago de estos Diagnósticos?</p>
+                            <p class="text-center">¿Está seguro de registrar el ingreso de estos Equipos?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
+                            <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
+                   
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -170,26 +188,49 @@
         <script src="https://cdn.datatables.net/select/1.4.0/js/dataTables.select.min.js" ></script>
 
         <script>
+             function switchDetalle(id){
+                var detalleElement = document.getElementById('detalle-'+id);
+                
+                if(detalleElement.style.visibility == "hidden"){
+                    detalleElement.style.visibility = 'visible';
+                } else {
+                    detalleElement.style.visibility = 'hidden';
+                    detalleElement.value = "";
+                }
+           }
 
             var stepper1Node = document.querySelector('#stepper1')
             var stepper1 = new Stepper(document.querySelector('#stepper1'),  {
                 linear: false,
                 animation: true
             })
+
+            stepper1Node.addEventListener('show.bs-stepper', function (event) {
+                console.warn('show.bs-stepper', event)
+            })
+            stepper1Node.addEventListener('shown.bs-stepper', function (event) {
+                console.warn('shown.bs-stepper', event)
+            })
             
-            $(document).ready(function() {
-                               
+            $(document).ready(function() {            
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposPresupuestados')}}",
+                    "ajax":  "{{route('getEquiposTercerosRetirados')}}",
                     "columns": [
                         {data: 'id'},
-                        {data: 'tipoequipo.nombre'},
+                        {data: 'serie'},
                         {data: 'marca.nombre'},
                         {data: 'modelo'},
                         {data: 'user.name'},
-                        {data: 'fechaIngreso'},                
+                        {data: 'name'},
+                        {data: 'fechaIngreso'},
+                        {data: 'fechaCompromiso'},
+                        {data: 'servicio'},
+                        {data: 'action', name: 'action', orderable: false, searchable:false},
+                        {data: 'estado'},
+                        {data: 'descripcion'},
+                
                     ],
                     'columnDefs': [
                     {
@@ -197,6 +238,10 @@
                         'checkboxes': {
                         'selectRow': true
                         }
+                    },
+                    {
+                        'targets': [10,11],
+                        visible: false,
                     },
 
                 ],
@@ -227,29 +272,25 @@
 
             function uncheckEquipment(e){
                 var idEquipment = e.target.id;
-                console.log('id elemento entrante ', e.target.id);
                 e.preventDefault();
-                console.log('equipment', idEquipment);
                 var equipment = document.getElementById(idEquipment);
+                var equipmentDetalle = document.getElementById('radio'+idEquipment);
+
                 var filaEquipment = equipment.parentNode.parentNode;
+                var filaEquipmentDetalle = equipmentDetalle.parentNode.parentNode;
+
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
-                // console.log('checks ', table.columns().checkboxes.selected()[0].length);
-                // console.log('Elementos array ', table.columns().checkboxes.selected()[0][0]);
-                // console.log('Entrante ', idEquipment);
                 for (let i = 0; i <= table.columns().checkboxes.selected()[0].length; i++) {
-                    console.log('iterador', i);
-                    console.log(table.row(i).data().id);
                     
-                    console.log(rows_selected);
                     if(rows_selected <= 1){
                         Swal.fire('Como mínimo debe ser 1 Equipo.')
                     } else if(rows_selected > 1) {
                         if(table.row(i).data().id == idEquipment){
-                        console.log('a borrar ',table.row(i).data().id);    
-                        table.row(i).deselect();
-                        filaEquipment.parentNode.removeChild(filaEquipment);
-}
+                            table.row(i).deselect();
+                            filaEquipment.parentNode.removeChild(filaEquipment);
+                            filaEquipmentDetalle.parentNode.removeChild(filaEquipmentDetalle);
+                        }
                         
                     }
                     
@@ -257,67 +298,85 @@
             }
                 
 
-            // Handle form submission event 
-            $( "#enviar" ).click(function(e) {
-                var form = document.getElementById('frm-example');
-                var rows_selected = table.column(0).checkboxes.selected();                
-                
-                if(rows_selected.length >= 1){
-                    // Iterate over all selected checkboxes
-                    $.each(rows_selected, function(index, rowId){
-                        // Create a hidden element 
-                        $(form).append(
-                            $('<input type="text" hidden>')
-                                .attr('name', 'idEquipos[]')
-                                .attr('value',rowId)
-                        );
-                    });
+            $( "#enviar" ).click(function() {
 
-                    Swal.fire(
-                        'Registro Exitoso!',
-                        'Se registró con éxito el Pago del Diagnóstico de los Equipos.', "success");
-                        $( "#enviar" ).submit();
-                        
-                } else {
-                    Swal.fire(
-                        'Error!',
-                        'Debe de elegir uno o varios Equipos.', "error");
-                        e.preventDefault();
-                }
+                var form = document.getElementById('frm-example');
+                var rows_selected = table.column(0).checkboxes.selected();
+                // Iterate over all selected checkboxes
+                $.each(rows_selected, function(index, rowId){
+
+                    // Create a hidden element 
+                    $(form).append(
+                        $('<input type="text" hidden>')
+                            .attr('name', 'idEquipos[]')
+                            .attr('value',rowId)
+                    );
+                });
+
+                let estadosEquipos = document.querySelectorAll("input[name^=equipoestado]:checked")
+                estadosEquipos.forEach(estadoEquipo => {
+                    var contenidoEstadoEquipo = estadoEquipo.attributes.value.nodeValue;
+                    $(form).append(
+                        $('<input type="text" hidden>')
+                            .attr('name', 'estadosEquipos[]')
+                            .attr('value',contenidoEstadoEquipo)
+                    );
+            
+                });
+
+
+                $( "#enviar" ).submit();
             });
+
+
 
             $('#equipos').on('click', function(e){
                 var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
-                console.log(tbodySelectedEquipments);
-                
+                var tbodySelectedEquipmentsDetalle = document.getElementById('selected-equipment-detalle').getElementsByTagName('tbody')[0];
+
                 tbodySelectedEquipments.innerHTML = "";
+                tbodySelectedEquipmentsDetalle.innerHTML = "";
+
+                
 
                 for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
-                    console.log(table.rows({selected: true}).data()[index].id);
+                    var id = table.rows({selected: true}).data()[index].id;
+                    var estado = table.rows({selected: true}).data()[index].estado;
+                    var descripcion = table.rows({selected: true}).data()[index].descripcion;
                     //Insertando Fila
                     var newRow = tbodySelectedEquipments.insertRow();
+                    var newRowDetalle = tbodySelectedEquipmentsDetalle.insertRow();
+
                     
-    
                     //Celda Serie
                     var celdaSerie = newRow.insertCell();
+                    var celdaSerieDetalle = newRowDetalle.insertCell();
                     //Insertando Contenido tipo texto.
-                    var contenidoSerie = document.createTextNode(table.rows({selected: true}).data()[index].tipoequipo.nombre);
+                    var contenidoSerie = document.createTextNode(table.rows({selected: true}).data()[index].serie);
+                    var contenidoSerieDetalle = document.createTextNode(table.rows({selected: true}).data()[index].serie);
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaSerie.appendChild(contenidoSerie);
+                    celdaSerieDetalle.appendChild(contenidoSerieDetalle);
 
                     //Celda Marca
                     var celdaMarca = newRow.insertCell();
+                    var celdaMarcaDetalle = newRowDetalle.insertCell();
                     //Insertando Contenido tipo texto.
                     var contenidoMarca = document.createTextNode(table.rows({selected: true}).data()[index].marca.nombre);
+                    var contenidoMarcaDetalle = document.createTextNode(table.rows({selected: true}).data()[index].marca.nombre);
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaMarca.appendChild(contenidoMarca);
+                    celdaMarcaDetalle.appendChild(contenidoMarcaDetalle);
 
                      //Celda Modelo
                      var celdaModelo = newRow.insertCell();
+                     var celdaModeloDetalle = newRowDetalle.insertCell();
                     //Insertando Contenido tipo texto.
                     var contenidoModelo = document.createTextNode(table.rows({selected: true}).data()[index].modelo);
+                    var contenidoModeloDetalle = document.createTextNode(table.rows({selected: true}).data()[index].modelo);
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaModelo.appendChild(contenidoModelo);
+                    celdaModeloDetalle.appendChild(contenidoModeloDetalle);
 
                     //Celda User
                     var celdaUser = newRow.insertCell();
@@ -333,7 +392,108 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaIngreso.appendChild(contenidoIngreso);
 
+                    //Celda Compromiso
+                    var celdaCompromiso = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoCompromiso = document.createTextNode(table.rows({selected: true}).data()[index].fechaCompromiso);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaCompromiso.appendChild(contenidoCompromiso);
 
+                    //Celda Servicio
+                    var celdaServicio = newRow.insertCell();
+                    var celdaServicioDetalle = newRowDetalle.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoServicio = document.createTextNode(table.rows({selected: true}).data()[index].servicio);
+                    var contenidoServicioDetalle = document.createTextNode(table.rows({selected: true}).data()[index].servicio);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaServicio.appendChild(contenidoServicio);
+                    celdaServicioDetalle.appendChild(contenidoServicioDetalle);
+
+                    //Celda Accion Detalle
+                    var celdaAccionDetalle = newRowDetalle.insertCell();
+                    celdaAccionDetalle.setAttribute("style", "padding-top:5px");
+
+                    if(estado == 16){
+                        var label = document.createElement("label");
+
+                        var radio = document.createElement("input");
+                        radio.setAttribute("id", "radio" + id);
+                        radio.setAttribute("type", "radio");
+                        radio.setAttribute("name", "equipoestado" + id);
+                        radio.setAttribute("value", "realizado");
+                        radio.setAttribute("style", "margin-right: 5px; visibility:hidden;");
+                        radio.setAttribute("onclick", "switchDetalle(" +id+")");
+                        radio.setAttribute("checked", "true");
+
+                         //Celda Detalle
+                        var celdaDetalle = newRowDetalle.insertCell();
+                        var detalle = document.createElement("textarea");
+                        detalle.setAttribute("name", "detallesEquipos[]");
+                        detalle.setAttribute("id", "detalle-" + id);
+                        detalle.setAttribute("style", "width:100%; resize:none");
+                        detalle.setAttribute("readonly", true);
+                        detalle.value = descripcion;
+                        celdaDetalle.appendChild(detalle);
+
+                        if(table.rows({selected: true}).data()[index].servicio == "Diagnóstico"){
+                            label.textContent = "Diagnosticado y Detallado por Tercero.";
+                        } else{
+                            label.textContent = "Reparado y Detallado por Tercero.";
+                        }
+
+                        celdaAccionDetalle.appendChild(radio);
+                        celdaAccionDetalle.appendChild(label);
+                    } else {
+
+                        //Insertando Contenido tipo radio y label.
+                        var br = document.createElement("br");
+                        var radio = document.createElement("input");
+                        radio.setAttribute("id", "radio" + id);
+                        radio.setAttribute("type", "radio");
+                        radio.setAttribute("name", "equipoestado" + id);
+                        radio.setAttribute("value", true);
+                        radio.setAttribute("style", "margin-right: 5px;");
+                        radio.setAttribute("onclick", "switchDetalle(" +id+")");
+                        radio.setAttribute("checked", "true");
+                    
+
+                        var label = document.createElement("label");
+                        var label2 = document.createElement("label");
+
+                        if(table.rows({selected: true}).data()[index].servicio == "Diagnóstico"){
+                            label.textContent = "Diagnosticado";
+                            label2.textContent = "No Diagnosticado";
+                        } else {
+                            label.textContent = "Reparado";
+                            label2.textContent = "No Reparado";
+                        }
+
+                        var radio2 = document.createElement("input");
+                        radio2.setAttribute("id", "radio" + id);
+                        radio2.setAttribute("type", "radio");
+                        radio2.setAttribute("name", "equipoestado" + id);
+                        radio2.setAttribute("value", false);
+                        radio2.setAttribute("style", "margin-right: 5px;");
+                        radio2.setAttribute("onclick", "switchDetalle(" +id+")");
+
+                        //Insertando sobre la celda el contenido tipo texto.
+                        celdaAccionDetalle.appendChild(radio);
+                        celdaAccionDetalle.appendChild(label);
+                        celdaAccionDetalle.appendChild(br);
+                        celdaAccionDetalle.appendChild(radio2);
+                        celdaAccionDetalle.appendChild(label2);
+                        
+                        //Celda Detalle
+                        var celdaDetalle = newRowDetalle.insertCell();
+                        var detalle = document.createElement("textarea");
+                        detalle.setAttribute("name", "detallesEquipos[]");
+                        detalle.setAttribute("id", "detalle-" + id);
+                        detalle.setAttribute("style", "width:100%; resize:none");
+                        celdaDetalle.appendChild(detalle);
+
+                    }
+                    
+                
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
                     celdaBtn.setAttribute('style', 'text-align:center;');
@@ -348,61 +508,34 @@
 
                     celdaBtn.appendChild(btn);
                 }
+                               
+
+                // btn.addEventListener("click", function () {
+                // alert("Button is clicked");
+                // });
                 
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
-
-                var comprobarPrecioServicio = null;
-
-                $.ajax({
-                async: false,
-                url: '{{route("getComprobacionPrecioDiagnostico")}}',
-                method: 'GET',
-                    success: function(response){
-                        if(response.error){
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Error en Registrar Pago Diagnóstico.',
-                            text: response.error,
-                            });
-
-                            comprobarPrecioServicio = false;
-                        } else{
-                            comprobarPrecioServicio = true;
-                        }
-                    },
-                    error: function(){
-                            console.log(error);
-                        }
-                    });
-                console.log(comprobarPrecioServicio);
+                console.log(rows_selected);
 
                 if(!rows_selected){
-                    Swal.fire('Debe de elegir al menos un Equipo.');
-                }
-                
-                if(rows_selected && comprobarPrecioServicio){
-                    stepper1.next();
-                }
-
-            });
-
-            $('#btnTipoPago').on('click', function(e){
-                var tipopago = document.getElementById("tipopago");
-                var value = tipopago.value;
-                
-                if(tipopago.value == ""){
-                    Swal.fire('Debe de elegir un Tipo de Pago.')
+                    Swal.fire('Debe de elegir al menos un Equipo.')
                 } else {
                     stepper1.next();
                 }
-
+               
             });
+
+            $('#detalles').on('click', function(e){
+                stepper1.next();
+            });
+            
+
 
             $('body').on('click', '.detBtn', function (){
 
             var id = $(this).data('id');
-            var url = '{{route("getDetalleEquipoDiagnosticoPago", ":id")}}';
+            var url = '{{route("getDetalleEquipoDiagnostico", ":id")}}';
             url = url.replace(':id', id);
 
             $.ajax({
@@ -583,3 +716,6 @@
 @endsection
 
     
+
+    
+

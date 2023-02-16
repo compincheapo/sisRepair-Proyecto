@@ -11,7 +11,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Registrar Pago Diagnóstico</h3>
+            <h3 class="page__heading">Asignación Equipo para Tercero</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -35,25 +35,32 @@
                             <div class="step" data-target="#test-l-1">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Equipos Diagnosticados</span>
+                                <span class="bs-stepper-label">Equipos Clientes</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-2">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">2</span>
-                                <span class="bs-stepper-label">Tipo de Pago</span>
+                                <span class="bs-stepper-label">Terceros</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Registrar Pago</span>
+                                <span class="bs-stepper-label">Detalle y Fecha Prometida</span>
+                                </button>
+                            </div>
+                            <div class="line"></div>
+                            <div class="step" data-target="#test-l-4">
+                                <button type="button" class="btn step-trigger">
+                                <span class="bs-stepper-circle">4</span>
+                                <span class="bs-stepper-label">Asignación</span>
                                 </button>
                             </div>
                         </div>
-                        {!! Form::open(array('route'=> 'registrarPagoDiagnostico', 'method'=> 'POST', 'id' => 'frm-example')) !!}
+                        {!! Form::open(array('route'=> 'asignarEquipoaTercero', 'method'=> 'POST', 'id' => 'frm-example')) !!}
 
                         <div class="bs-stepper-content">
                             <div id="test-l-1" class="content">
@@ -62,11 +69,14 @@
                                             <thead>
                                                 <tr>
                                                     <th width="10px">ID</th>
-                                                    <th>Tipo Equipo</th>
+                                                    <th>Serie</th>
                                                     <th>Marca</th>
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
+                                                    <th>Fecha Compromiso</th>
+                                                    <th>Servicio</th>
+                                                    <th>Acciones</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -76,29 +86,66 @@
                             
                          </div>
                         <div id="test-l-2" class="content">
-                            <div class="form-group">
-                                <label for="tipopago">Tipo de Pago</label>
-                                <select name="tipopago" class="form-control" id="tipopago">
-                                    @foreach($tipospago as $tipopago)
-                                        <option value="{{$tipopago->id}}">{{$tipopago->nombre}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                          
+                        <div class="table-responsive table-bordered">
+                        <table id="example" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Lastname</th>
+                        
+                                </tr>
+                            </thead>
+                            
+                    </table>
+                                </div>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="btnTipoPago">Siguiente</button>
+                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="terceros">Siguiente</button>
                         </div>
 
                         <div id="test-l-3" class="content">
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-12 col-md-12">
+                                    <div class="form-group"> 
+                                        <label for="descripcion">Detalle de la Asignación</label>
+                                        <div class="form-control" style="visibility: hidden; padding:0; height:20px">
+                                        </div>
+                                        {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="form-group"> 
+                                                <label for="fecha">Fecha Prometida</label>
+                                            {!!Form::date('fecha', null, ['class' => 'form-control', 'id'=>'fecha'] )!!} 
+                                            </div>
+                                </div>
+                                <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="form-group"> 
+                                                <label for="fecha">Días recomendados</label>
+                                            {!!Form::text('dias', null, ['class' => 'form-control', 'disabled' => 'true', 'id' => 'dias'] )!!} 
+                                            </div>
+                                </div>
+                                
+                            </div>
+                            <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
+                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="fechaprom">Siguiente</button>
+                        </div>
+
+                        <div id="test-l-4" class="content">
 
                             <table id="selected-equipment" class="table" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th>Tipo Equipo</th>
+                                        <th>Serie</th>
                                         <th>Marca</th>
                                         <th>Modelo</th>
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
+                                        <th>Fecha Compromiso</th>
+                                        <th>Servicio</th>
+                                        <th>Demora en Días</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -108,12 +155,12 @@
                             
                             </table>
 
-
-                            <p class="text-center">¿Está seguro de registrar el pago de estos Diagnósticos?</p>
+                            <p class="text-center">¿Está seguro de asignar estos Equipos?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
+                            <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
+                   
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -176,20 +223,46 @@
                 linear: false,
                 animation: true
             })
+
+            stepper1Node.addEventListener('show.bs-stepper', function (event) {
+                console.warn('show.bs-stepper', event)
+            })
+            stepper1Node.addEventListener('shown.bs-stepper', function (event) {
+                console.warn('shown.bs-stepper', event)
+            })
             
             $(document).ready(function() {
-                               
+                
+                var tablita = $('#example').DataTable( {
+                    "serverSide": true,
+                    "ajax":  "{{route('terceros')}}",
+                    "columns": [
+                        {data: 'id'},
+                        {data: 'name'},
+                        {data: 'lastname'},
+                
+                    ],
+                    select: {
+                        style: 'single'
+                    }
+                } );
+
+               
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposPresupuestados')}}",
+                    "ajax":  "{{route('getEquiposTerceros')}}",
                     "columns": [
                         {data: 'id'},
-                        {data: 'tipoequipo.nombre'},
+                        {data: 'serie'},
                         {data: 'marca.nombre'},
                         {data: 'modelo'},
                         {data: 'user.name'},
-                        {data: 'fechaIngreso'},                
+                        {data: 'fechaIngreso'},
+                        {data: 'fechaCompromiso'},
+                        {data: 'servicio'},
+                        {data: 'action', name: 'action', orderable: false, searchable:false}
+                
                     ],
                     'columnDefs': [
                     {
@@ -234,22 +307,31 @@
                 var filaEquipment = equipment.parentNode.parentNode;
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
-                // console.log('checks ', table.columns().checkboxes.selected()[0].length);
-                // console.log('Elementos array ', table.columns().checkboxes.selected()[0][0]);
-                // console.log('Entrante ', idEquipment);
                 for (let i = 0; i <= table.columns().checkboxes.selected()[0].length; i++) {
                     console.log('iterador', i);
-                    console.log(table.row(i).data().id);
+                    console.log(table.row(i).data(), 'holaxxx');
                     
                     console.log(rows_selected);
                     if(rows_selected <= 1){
                         Swal.fire('Como mínimo debe ser 1 Equipo.')
                     } else if(rows_selected > 1) {
                         if(table.row(i).data().id == idEquipment){
-                        console.log('a borrar ',table.row(i).data().id);    
-                        table.row(i).deselect();
-                        filaEquipment.parentNode.removeChild(filaEquipment);
-}
+                            console.log('a borrar ',table.row(i).data().id);    
+                            table.row(i).deselect();
+                            filaEquipment.parentNode.removeChild(filaEquipment);
+                            var fechaInicio = new Date(table.row(i).data().fechaIngreso).getTime();
+                            var fechaFin    = new Date(table.row(i).data().fechaCompromiso).getTime();
+
+                            var diff = fechaFin - fechaInicio;
+                            diff = Math.ceil(diff/(1000*60*60*24));
+
+                            if(diff == 0){
+                                diff = 1;
+                            }
+                            dias = document.getElementById('dias');
+                            document.getElementById('dias').value = dias.value - diff;
+
+                        }
                         
                     }
                     
@@ -258,50 +340,55 @@
                 
 
             // Handle form submission event 
-            $( "#enviar" ).click(function(e) {
+            $( "#enviar" ).click(function() {
                 var form = document.getElementById('frm-example');
-                var rows_selected = table.column(0).checkboxes.selected();                
-                
-                if(rows_selected.length >= 1){
-                    // Iterate over all selected checkboxes
-                    $.each(rows_selected, function(index, rowId){
-                        // Create a hidden element 
-                        $(form).append(
-                            $('<input type="text" hidden>')
-                                .attr('name', 'idEquipos[]')
-                                .attr('value',rowId)
-                        );
-                    });
+                var rows_selected = table.column(0).checkboxes.selected();
+                // Iterate over all selected checkboxes
+                $.each(rows_selected, function(index, rowId){
+                    console.log("si pasa")
 
-                    Swal.fire(
-                        'Registro Exitoso!',
-                        'Se registró con éxito el Pago del Diagnóstico de los Equipos.', "success");
-                        $( "#enviar" ).submit();
-                        
-                } else {
-                    Swal.fire(
-                        'Error!',
-                        'Debe de elegir uno o varios Equipos.', "error");
-                        e.preventDefault();
+                    // Create a hidden element 
+                    $(form).append(
+                        $('<input type="text" hidden>')
+                            .attr('name', 'idEquipos[]')
+                            .attr('value',rowId)
+                    );
+                });
+
+
+                var form = document.getElementById('frm-example');
+                console.log(tablita.rows( { selected: true } ).data()[0].id);
+                var tecnico = tablita.rows( { selected: true } ).data()[0].id;
+
+                if(tecnico){
+                    $(form).append(
+                        $('<input type="text" hidden>')
+                            .attr('name', 'idTercero')
+                            .attr('value', tecnico)
+                    );
                 }
+            $( "#enviar" ).submit();
             });
+
 
             $('#equipos').on('click', function(e){
                 var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
-                console.log(tbodySelectedEquipments);
-                
+
                 tbodySelectedEquipments.innerHTML = "";
+
+                
+                var diasRecomendados = 0;
 
                 for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
                     console.log(table.rows({selected: true}).data()[index].id);
                     //Insertando Fila
                     var newRow = tbodySelectedEquipments.insertRow();
+
                     
-    
                     //Celda Serie
                     var celdaSerie = newRow.insertCell();
                     //Insertando Contenido tipo texto.
-                    var contenidoSerie = document.createTextNode(table.rows({selected: true}).data()[index].tipoequipo.nombre);
+                    var contenidoSerie = document.createTextNode(table.rows({selected: true}).data()[index].serie);
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaSerie.appendChild(contenidoSerie);
 
@@ -333,6 +420,39 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaIngreso.appendChild(contenidoIngreso);
 
+                    //Celda Compromiso
+                    var celdaCompromiso = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoCompromiso = document.createTextNode(table.rows({selected: true}).data()[index].fechaCompromiso);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaCompromiso.appendChild(contenidoCompromiso);
+
+                    //Celda Servicio
+                    var celdaServicio = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoServicio = document.createTextNode(table.rows({selected: true}).data()[index].servicio);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaServicio.appendChild(contenidoServicio);
+
+                    var fechaInicio = new Date(table.rows({selected: true}).data()[index].fechaIngreso).getTime();
+                    var fechaFin    = new Date(table.rows({selected: true}).data()[index].fechaCompromiso).getTime();
+
+                    var diff = fechaFin - fechaInicio;
+                    diff = Math.ceil(diff/(1000*60*60*24));
+
+                    if(diff == 0){
+                        diff = 1;
+                    }
+
+                    diasRecomendados = diasRecomendados + diff;
+                    //Celda Días
+                    var celdaDia = newRow.insertCell();
+                    celdaDia.style.textAlign = "center";
+                    //Insertando Contenido tipo texto.
+                    var contenidoDia = document.createTextNode(diff);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaDia.appendChild(contenidoDia);
+
 
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
@@ -348,61 +468,59 @@
 
                     celdaBtn.appendChild(btn);
                 }
+               
+                document.getElementById('dias').value  = diasRecomendados;
+                
+
+                // btn.addEventListener("click", function () {
+                // alert("Button is clicked");
+                // });
                 
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
-
-                var comprobarPrecioServicio = null;
-
-                $.ajax({
-                async: false,
-                url: '{{route("getComprobacionPrecioDiagnostico")}}',
-                method: 'GET',
-                    success: function(response){
-                        if(response.error){
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Error en Registrar Pago Diagnóstico.',
-                            text: response.error,
-                            });
-
-                            comprobarPrecioServicio = false;
-                        } else{
-                            comprobarPrecioServicio = true;
-                        }
-                    },
-                    error: function(){
-                            console.log(error);
-                        }
-                    });
-                console.log(comprobarPrecioServicio);
+                console.log(rows_selected);
 
                 if(!rows_selected){
-                    Swal.fire('Debe de elegir al menos un Equipo.');
-                }
-                
-                if(rows_selected && comprobarPrecioServicio){
+                    Swal.fire('Debe de elegir al menos un Equipo.')
+                } else {
                     stepper1.next();
                 }
-
+               
             });
 
-            $('#btnTipoPago').on('click', function(e){
-                var tipopago = document.getElementById("tipopago");
-                var value = tipopago.value;
-                
-                if(tipopago.value == ""){
-                    Swal.fire('Debe de elegir un Tipo de Pago.')
+            $('#terceros').on('click', function(e){
+                var terceroseleccionado = tablita.rows( { selected: true } ).count();
+
+                if(!terceroseleccionado){
+                    Swal.fire('Debe de elegir un Tercero para asignar el Equipo.')
                 } else {
                     stepper1.next();
                 }
 
             });
 
+            $('#fechaprom').on('click', function(e){
+                var fecha = document.getElementById('fecha').value;
+
+                if(fecha != ''){
+                    var fechaActual = new Date();
+                    fechaPrometida = new Date(fecha);
+    
+                    if(fechaPrometida > fechaActual){
+                        stepper1.next();
+                    }else{
+                        Swal.fire('Debe de elegir una fecha prometida superior a la actual.')
+                    }
+                } else {
+                    Swal.fire('Debe de elegir una fecha prometida.')
+                }
+            
+            });
+
             $('body').on('click', '.detBtn', function (){
 
             var id = $(this).data('id');
-            var url = '{{route("getDetalleEquipoDiagnosticoPago", ":id")}}';
+            var url = '{{route("getDetalleEquipoServicio", ":id")}}';
             url = url.replace(':id', id);
 
             $.ajax({
@@ -481,12 +599,12 @@
                     }
                     
                 }
-
-                if(response.data[0].comentario){
+                
+                if(response.data[0].comentarios.length){
 
                 //Div hermano.
                 var divRowBro = document.getElementById('divRowBro').parentNode;
-                
+
                 //Div Accordion.
                 var divAccordion = document.createElement("div");
                 divAccordion.setAttribute('class', 'accordion');
@@ -496,9 +614,112 @@
                 divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
 
-                //-------------------- RECORRIDO COMENTARIO ---------------------------
-            
+                //-------------------- RECORRIDO COMENTARIOS ---------------------------
+
+                for (let i = 0; i < response.data[0].comentarios.length; i++) {
                     
+                //Div Card
+                var divCard = document.createElement("div");
+                divCard.setAttribute('class', 'card');
+                divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
+
+                divAccordion.appendChild(divCard);
+
+                //Div Card-header
+                var divCardHeader = document.createElement("div");
+                divCardHeader.setAttribute('class', 'card-header');
+                divCardHeader.setAttribute('id', 'headingOne');
+                divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
+
+                divCard.appendChild(divCardHeader);
+
+                //H2
+                var headerH2 = document.createElement("h2");
+
+                divCardHeader.appendChild(headerH2);
+
+
+                //Button H2
+                var buttonH2 = document.createElement("button");
+                buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
+                buttonH2.setAttribute('type', 'button');
+                buttonH2.setAttribute('data-toggle', 'collapse');
+                buttonH2.setAttribute('data-target', '#collapseOne'+i);
+                buttonH2.setAttribute('aria-expanded', 'true');
+                buttonH2.setAttribute('aria-controls', 'collapseOne');
+                buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
+
+                //Control de Tipo de Comentario o Detalle
+                if(response.data[0].comentarios[i].id_estado == 1){
+                    buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 9){
+                    buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 4){
+                    buttonH2.innerHTML = 'Detalle Diagnóstico Finalizado ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 5){
+                    buttonH2.innerHTML = 'Detalle Inicio Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 10){
+                    buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+                if(response.data[0].comentarios[i].id_estado == 16){
+                    buttonH2.innerHTML = 'Detalle Retiro Equipo por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                headerH2.appendChild(buttonH2);
+
+                //divCollapse
+                var divCollapse = document.createElement("div");
+                divCollapse.setAttribute('data-collapse', '#mycard-collapse')
+                divCollapse.setAttribute('id', 'collapseOne'+i)
+                divCollapse.setAttribute('class', 'collapse')
+                divCollapse.setAttribute('aria-labelledby', 'headingOne')
+                divCollapse.setAttribute('data-parent', '#accordionExample')
+
+                divCard.appendChild(divCollapse);
+
+                //div Card-Body
+                var divCardBody = document.createElement("div");
+                divCardBody.setAttribute('class', 'card-body')
+                divCardBody.innerHTML = response.data[0].comentarios[i].descripcion;
+
+                divCollapse.appendChild(divCardBody);
+
+                //Div Colapsable card-footer
+                var divCardFooter = document.createElement("div");
+                divCardFooter.setAttribute('class', 'card-footer');
+                divCardFooter.innerHTML = 'Escrito por:'
+
+                divCollapse.appendChild(divCardFooter);
+
+                //Parrafo card-footer
+
+                var pCardFooter = document.createElement("p");
+                pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
+                pCardFooter.innerHTML = response.data[0].comentarios[i].lastname + ' ' + response.data[0].comentarios[i].name;
+
+                divCardFooter.appendChild(pCardFooter);
+
+                }
+                } else {
+                //Div hermano.
+                var divRowBro = document.getElementById('divRowBro').parentNode;
+
+                //Div Accordion.
+                var divAccordion = document.createElement("div");
+                divAccordion.setAttribute('class', 'accordion');
+                divAccordion.setAttribute('style', 'margin-top:15px;');
+                divAccordion.setAttribute('id', 'accordionExample');
+
+                divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
+
                 //Div Card
                 var divCard = document.createElement("div");
                 divCard.setAttribute('class', 'card');
@@ -530,9 +751,7 @@
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
-                //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
-        
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios.created_at + '<p>';
 
                 headerH2.appendChild(buttonH2);
 
@@ -549,7 +768,7 @@
                 //div Card-Body
                 var divCardBody = document.createElement("div");
                 divCardBody.setAttribute('class', 'card-body')
-                divCardBody.innerHTML = response.data[0].comentario.descripcion;
+                divCardBody.innerHTML = response.data[0].comentarios.descripcion;
 
                 divCollapse.appendChild(divCardBody);
 
@@ -564,22 +783,24 @@
 
                 var pCardFooter = document.createElement("p");
                 pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
-                pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
+                pCardFooter.innerHTML = response.data[0].comentarios.lastname + ' ' + response.data[0].comentarios.name;
 
                 divCardFooter.appendChild(pCardFooter);
 
+                }
+                            
+                },
+                error: function(){
+                    console.log(error);
+                }
+                });
+                });
                 
-                }     
-            
-            },
-            error: function(){
-                console.log(error);
-            }
-            });
-            });
-            
-            });
+                });
         </script>
 @endsection
 
     
+
+    
+

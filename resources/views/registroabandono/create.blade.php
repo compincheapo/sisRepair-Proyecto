@@ -11,7 +11,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Registrar Pago Diagnóstico</h3>
+            <h3 class="page__heading">Registrar Abandono Equipo</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -35,25 +35,25 @@
                             <div class="step" data-target="#test-l-1">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Equipos Diagnosticados</span>
+                                <span class="bs-stepper-label">Equipos Reparados</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-2">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">2</span>
-                                <span class="bs-stepper-label">Tipo de Pago</span>
+                                <span class="bs-stepper-label">Detalle Abandono</span>
                                 </button>
                             </div>
                             <div class="line"></div>
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Registrar Pago</span>
+                                <span class="bs-stepper-label">Registrar Abandono</span>
                                 </button>
                             </div>
                         </div>
-                        {!! Form::open(array('route'=> 'registrarPagoDiagnostico', 'method'=> 'POST', 'id' => 'frm-example')) !!}
+                        {!! Form::open(array('route'=> 'equipos.registrarAbandono', 'method'=> 'POST', 'id' => 'frm-example')) !!}
 
                         <div class="bs-stepper-content">
                             <div id="test-l-1" class="content">
@@ -67,6 +67,8 @@
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
+                                                    <th>Fecha Reparación</th>
+                                                    <th>Acción</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -76,17 +78,17 @@
                             
                          </div>
                         <div id="test-l-2" class="content">
-                            <div class="form-group">
-                                <label for="tipopago">Tipo de Pago</label>
-                                <select name="tipopago" class="form-control" id="tipopago">
-                                    @foreach($tipospago as $tipopago)
-                                        <option value="{{$tipopago->id}}">{{$tipopago->nombre}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <div class="form-group"> 
+                                    <label for="descripcion">Detalles del Equipo</label>
+                                    <div class="form-control" style="visibility: hidden; padding:0; height:20px">
+                                    </div>
+                                    {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
+                                </div>
+                              </div>
                           
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="btnTipoPago">Siguiente</button>
+                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="descAbandono">Siguiente</button>
                         </div>
 
                         <div id="test-l-3" class="content">
@@ -99,6 +101,7 @@
                                         <th>Modelo</th>
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
+                                        <th>Fecha Reparación</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -109,11 +112,20 @@
                             </table>
 
 
-                            <p class="text-center">¿Está seguro de registrar el pago de estos Diagnósticos?</p>
+                            <p class="text-center">¿Está seguro de registrar el Abandono de estos Equipos?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
                             <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
+                    <!-- <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a> -->
+                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
+
+                    <p><button>Submit</button></p>
+
+                    <p><b>Selected rows data:</b></p>
+                    <pre id="example-console-rows"></pre>
+
+                    <p><b>Form data as submitted to the server:</b></p> -->
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -182,14 +194,16 @@
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposPresupuestados')}}",
+                    "ajax":  "{{route('equipos.equiposreparados')}}",
                     "columns": [
                         {data: 'id'},
                         {data: 'tipoequipo.nombre'},
                         {data: 'marca.nombre'},
                         {data: 'modelo'},
                         {data: 'user.name'},
-                        {data: 'fechaIngreso'},                
+                        {data: 'fechaIngreso'},      
+                        {data: 'fechaReparacion'},      
+                        {data: 'action', name: 'action', orderable: false, searchable:false}          
                     ],
                     'columnDefs': [
                     {
@@ -275,7 +289,7 @@
 
                     Swal.fire(
                         'Registro Exitoso!',
-                        'Se registró con éxito el Pago del Diagnóstico de los Equipos.', "success");
+                        'Se registró con éxito el Abandono el Equipo.', "success");
                         $( "#enviar" ).submit();
                         
                 } else {
@@ -333,6 +347,13 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaIngreso.appendChild(contenidoIngreso);
 
+                    //Celda Ingreso
+                    var celdaIngreso = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoIngreso = document.createTextNode(table.rows({selected: true}).data()[index].fechaReparacion);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaIngreso.appendChild(contenidoIngreso);
+
 
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
@@ -348,61 +369,35 @@
 
                     celdaBtn.appendChild(btn);
                 }
+
+                
+                
+
+                // btn.addEventListener("click", function () {
+                // alert("Button is clicked");
+                // });
                 
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
-
-                var comprobarPrecioServicio = null;
-
-                $.ajax({
-                async: false,
-                url: '{{route("getComprobacionPrecioDiagnostico")}}',
-                method: 'GET',
-                    success: function(response){
-                        if(response.error){
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Error en Registrar Pago Diagnóstico.',
-                            text: response.error,
-                            });
-
-                            comprobarPrecioServicio = false;
-                        } else{
-                            comprobarPrecioServicio = true;
-                        }
-                    },
-                    error: function(){
-                            console.log(error);
-                        }
-                    });
-                console.log(comprobarPrecioServicio);
+                console.log(rows_selected);
 
                 if(!rows_selected){
-                    Swal.fire('Debe de elegir al menos un Equipo.');
-                }
-                
-                if(rows_selected && comprobarPrecioServicio){
-                    stepper1.next();
-                }
-
-            });
-
-            $('#btnTipoPago').on('click', function(e){
-                var tipopago = document.getElementById("tipopago");
-                var value = tipopago.value;
-                
-                if(tipopago.value == ""){
-                    Swal.fire('Debe de elegir un Tipo de Pago.')
+                    Swal.fire('Debe de elegir al menos un Equipo.')
                 } else {
                     stepper1.next();
                 }
 
+               
+            });
+
+            $('#descAbandono').on('click', function(e){
+                stepper1.next();
             });
 
             $('body').on('click', '.detBtn', function (){
 
             var id = $(this).data('id');
-            var url = '{{route("getDetalleEquipoDiagnosticoPago", ":id")}}';
+            var url = '{{route("getDetalleEquipoReparado", ":id")}}';
             url = url.replace(':id', id);
 
             $.ajax({
@@ -412,10 +407,10 @@
                 $('.modalCreateForm').modal('show');
                 $('.modal-title').html('Detalle Equipo');
 
-
-                if(document.getElementById('labelGroup')){
-                $('#labelGroup').addClass("d-none");
-                }
+                $('#btnGuardar').addClass("d-none");
+                $('#nameError').addClass("d-none");
+                $('#emailError').addClass("d-none");
+                $('#btnFinalizarRep').addClass("d-none");
 
 
                 $('#divRowBro').removeClass("d-none");
@@ -424,7 +419,6 @@
                 $('#id').val(response.data[0].id);
                 $('#estante').val(response.data[0].estante);
                 $('#seccionEstante').val(response.data[0].seccionEstante);
-                
 
                 if(document.getElementById('newCreated')){
                     document.getElementById('newCreated').remove();
@@ -482,7 +476,7 @@
                     
                 }
 
-                if(response.data[0].comentario){
+                if(response.data[0].comentarios){
 
                 //Div hermano.
                 var divRowBro = document.getElementById('divRowBro').parentNode;
@@ -496,8 +490,11 @@
                 divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
 
-                //-------------------- RECORRIDO COMENTARIO ---------------------------
-            
+                //-------------------- RECORRIDO COMENTARIOS ---------------------------
+
+                console.log(response.data[0].comentarios.length, 'cantidad comentarios');
+
+                for (let i = 0; i < response.data[0].comentarios.length; i++) {
                     
                 //Div Card
                 var divCard = document.createElement("div");
@@ -525,21 +522,45 @@
                 buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
                 buttonH2.setAttribute('type', 'button');
                 buttonH2.setAttribute('data-toggle', 'collapse');
-                buttonH2.setAttribute('data-target', '#collapseOne');
+                buttonH2.setAttribute('data-target', '#collapseOne'+i);
                 buttonH2.setAttribute('aria-expanded', 'true');
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
                 //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
-        
+                if(response.data[0].comentarios[i].id_estado == 1){
+                    buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 9){
+                    buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 8){
+                    buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 4){
+                    buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 5){
+                    buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 10){
+                    buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
+                if(response.data[0].comentarios[i].id_estado == 11){
+                    buttonH2.innerHTML = 'Presupuesto Aceptado ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                }
 
                 headerH2.appendChild(buttonH2);
 
                 //divCollapse
                 var divCollapse = document.createElement("div");
                 divCollapse.setAttribute('data-collapse', '#mycard-collapse')
-                divCollapse.setAttribute('id', 'collapseOne')
+                divCollapse.setAttribute('id', 'collapseOne'+i)
                 divCollapse.setAttribute('class', 'collapse')
                 divCollapse.setAttribute('aria-labelledby', 'headingOne')
                 divCollapse.setAttribute('data-parent', '#accordionExample')
@@ -549,7 +570,7 @@
                 //div Card-Body
                 var divCardBody = document.createElement("div");
                 divCardBody.setAttribute('class', 'card-body')
-                divCardBody.innerHTML = response.data[0].comentario.descripcion;
+                divCardBody.innerHTML = response.data[0].comentarios[i].descripcion;
 
                 divCollapse.appendChild(divCardBody);
 
@@ -564,11 +585,12 @@
 
                 var pCardFooter = document.createElement("p");
                 pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
-                pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
+                pCardFooter.innerHTML = response.data[0].comentarios[i].lastname + ' ' + response.data[0].comentarios[i].name;
 
                 divCardFooter.appendChild(pCardFooter);
 
-                
+                }
+
                 }     
             
             },

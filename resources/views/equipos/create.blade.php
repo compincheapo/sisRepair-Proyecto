@@ -98,25 +98,9 @@
                                       </select>
                                      </div>
                                     </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group"> 
-                                            <label for="fecha">Fecha Prometida</label>
-                                           {!!Form::date('fecha', null, ['class' => 'form-control'] )!!} 
-                                        </div>
-                                   </div>
-
-                                    <div class="col-xs-12 col-sm-12 col-md-12">
-                                        <div class="form-group"> 
-                                            <label for="descripcion">Detalles del Equipo</label>
-                                            <div class="form-control" style="visibility: hidden; padding:0; height:20px"></div>
-                                            {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;'])!!}                                        
-                                        </div>
-                                   </div>
                                     
-                                </>
+                                </div>
                                 
-                            </div>
                             <div class="row mt-2">
                                 <div class="col-xs-12 col-sm-12 col-md-12">
                                     <button type="submit" class="btn btn-primary">Guardar</button>

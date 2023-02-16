@@ -13,10 +13,8 @@ use App\Models\TipoEquipo;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-
-class PagoDiagnosticoController extends Controller
+class PagoReparacionController extends Controller
 {
-    
     public function index(Request $request){
 
         $usuarios = User::with("roles")->whereHas("roles", function($q) {
@@ -105,20 +103,23 @@ class PagoDiagnosticoController extends Controller
 
         $fechapago = Carbon::now();
 
-        $precioServicioDiagnostico = DB::table('precios')
-        ->where('precios.id_servicio', 1)
-        ->orderBy('precios.created_at', 'desc')
-        ->first();
-
         $pago = new Pago;
         $pago->id_tipopago = $request->get("tipopago");
         $pago->fechapago = $fechapago;
-        $pago->precio = $precioServicioDiagnostico->precio;
-        $pago->save();
+
+        $sumaPresupuestos = 0;
 
         foreach ($equipos as $equipo) {
-            $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 1)->where('id_servicio', 1)->orderBy('ordenesservicio.created_at', 'desc')
-            ->first();         
+            $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 1)->where('id_servicio', 2)->orderBy('ordenesservicio.created_at', 'desc')
+            ->first();
+            
+            //traer todos los presupuestos, sumarlos y añadir al pago y luego guardarlo con save.
+            $presupuestoOrden = DB::table('ordenservicios_presupuestos')
+            ->where('ordenservicios_presupuestos.id_orden', $orden->id)
+            ->first();
+
+            $sumaPresupuestos = $sumaPresupuestos + $presupuestoOrden->presupuesto;
+
 
             DB::table('ordenservicios_pagos')->insert([
                 'id_orden' => $orden->id,
@@ -133,6 +134,9 @@ class PagoDiagnosticoController extends Controller
             ]);
             
         }
+
+        $pago->precio = $sumaPresupuestos;
+        $pago->save();
 
         return redirect()->route('pagodiagnostico.index');
 
@@ -158,5 +162,4 @@ class PagoDiagnosticoController extends Controller
 
     }
 
-    
 }

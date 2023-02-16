@@ -125,7 +125,7 @@ body.sidebar-mini .main-sidebar:after {
         </ul>
 </li>
 @endif
-@if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+@if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Cliente")
 <li id="drop-2" class="dropdown">
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-user"></i><span>Módulo Clientes</span></a>
         <ul id="dropmenu-2" class="dropdown-menu">
@@ -133,6 +133,13 @@ body.sidebar-mini .main-sidebar:after {
                 <hr style="margin-top:1px; margin-bottom:1px">
                 <li class="{{ Request::is('equipos') ? 'active' : '' }}">
                     <a href="{{ url('/equipos') }}" class="primario">Gestión Equipos Cliente </a> 
+                </li>
+            @endif
+
+           @if(Auth::user()->getRoleNames()->first() == "Vendedor" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('ordenesservicios') ? 'active' : '' }}">
+                    <a href="{{ url('/ordenesservicios') }}" class="primario">Ordenes de Servicio</a> 
                 </li>
             @endif
 
@@ -151,6 +158,21 @@ body.sidebar-mini .main-sidebar:after {
                 </li>
                 <hr style="margin-top:1px; margin-bottom:1px">
             @endif
+
+            @if(Auth::user()->getRoleNames()->first() == "Cliente" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/equipos/misequiposdiagnostico') ? 'active' : '' }}">
+                    <a href="{{ url('/equipos/misequiposdiagnostico') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
+                </li>
+            @endif
+
+            @if(Auth::user()->getRoleNames()->first() == "Cliente" || Auth::user()->getRoleNames()->first() == "Admin")
+                <hr style="margin-top:1px; margin-bottom:1px">
+                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
+                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
+                </li>
+                <hr style="margin-top:1px; margin-bottom:1px">
+            @endif
         </ul>
 </li>
 @endif
@@ -159,18 +181,23 @@ body.sidebar-mini .main-sidebar:after {
         <a href="#" class="nav-link has-dropdown primario"><i class="fas fa-hands-helping"></i><span>Módulo Terceros</span></a>
         <ul id="dropmenu-3" class="dropdown-menu">
             @if(Auth::user()->getRoleNames()->first() == "Admin")
-                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario">Asignar Equipos </a>
+                <li class="{{ Request::is('/asignacion/diagnostico/terceros') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/diagnostico/terceros') }}" class="primario">Asignar Equipos </a>
+                </li>
+            @endif 
+            @if(Auth::user()->getRoleNames()->first() == "Admin")
+                <li class="{{ Request::is('/asignacion/equipostercerossasignados') ? 'active' : '' }}">
+                    <a href="{{ url('/asignacion/equipostercerossasignados') }}" class="primario">Asignaciones Realizadas </a>
                 </li>
             @endif 
             @if(Auth::user()->getRoleNames()->first() == "Tercero")
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Consultar Asignaciones </a>
+            <li class="{{ Request::is('/asignacion/vermisequiposasignados') ? 'active' : '' }}">
+                <a href="{{ url('/asignacion/vermisequiposasignados') }}" class="primario">Mis Asignaciones </a>
             </li>
             @endif
             @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Vendedor")
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Registrar Devolución </a>
+            <li class="{{ Request::is('/asignacion/diagnostico/retirosterceros') ? 'active' : '' }}">
+                <a href="{{ url('/asignacion/diagnostico/retirosterceros') }}" class="primario">Registrar Devolución </a>
             </li>
             @endif
         </ul>
@@ -197,12 +224,6 @@ body.sidebar-mini .main-sidebar:after {
                 </li>
             @endif
 
-            @if(Auth::user()->getRoleNames()->first() == "Cliente")
-                <hr style="margin-top:1px; margin-bottom:1px">
-                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
-                </li>
-            @endif
         </ul>
 </li>
 @endif
@@ -226,14 +247,6 @@ body.sidebar-mini .main-sidebar:after {
                     <a href="{{ url('/asignacion/vermisreparacionesasignadas') }}" class="primario">Mis Asignaciones</a>
                 </li>
             @endif
-
-            @if(Auth::user()->getRoleNames()->first() == "Cliente")
-                <hr style="margin-top:1px; margin-bottom:1px">
-                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
-                </li>
-                <hr style="margin-top:1px; margin-bottom:1px">
-            @endif
         </ul>
 </li>
 @endif
@@ -247,8 +260,8 @@ body.sidebar-mini .main-sidebar:after {
                 <a href="{{ url('/estantes') }}" class="primario">Gestionar Estantes</a>
             </li>
             @endcan
-            <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                <a href="{{ url('/pepe') }}" class="primario">Registrar Abandono</a>
+            <li class="{{ Request::is('/equipos/equiposabandonados') ? 'active' : '' }}">
+                <a href="{{ url('/equipos/equiposabandonados') }}" class="primario">Registrar Abandono</a>
             </li>
             <li class="{{ Request::is('/equiporepuestos') ? 'active' : '' }}">
                 <a href="{{ url('/equiporepuestos') }}" class="primario" style="height:50px">Gestionar Equipo Repuesto</a>

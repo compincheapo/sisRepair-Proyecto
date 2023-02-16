@@ -11,7 +11,7 @@
 
 <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Registrar Pago Diagnóstico</h3>
+            <h3 class="page__heading">Registrar Pago Reparación</h3>
         </div>
         <div class="section-body">
             <div class="row">
@@ -35,7 +35,7 @@
                             <div class="step" data-target="#test-l-1">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Equipos Diagnosticados</span>
+                                <span class="bs-stepper-label">Equipos Reparados</span>
                                 </button>
                             </div>
                             <div class="line"></div>
@@ -67,6 +67,7 @@
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
+                                                    <th>Fecha Reparación</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -99,6 +100,7 @@
                                         <th>Modelo</th>
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
+                                        <th>Fecha Reparación</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -114,6 +116,15 @@
                             <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
+                    <!-- <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a> -->
+                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
+
+                    <p><button>Submit</button></p>
+
+                    <p><b>Selected rows data:</b></p>
+                    <pre id="example-console-rows"></pre>
+
+                    <p><b>Form data as submitted to the server:</b></p> -->
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -182,7 +193,7 @@
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposPresupuestados')}}",
+                    "ajax":  "{{route('equipos.equiposreparados')}}",
                     "columns": [
                         {data: 'id'},
                         {data: 'tipoequipo.nombre'},
@@ -190,6 +201,7 @@
                         {data: 'modelo'},
                         {data: 'user.name'},
                         {data: 'fechaIngreso'},                
+                        {data: 'fechaReparacion'},                
                     ],
                     'columnDefs': [
                     {
@@ -333,6 +345,13 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaIngreso.appendChild(contenidoIngreso);
 
+                    //Celda Fecha Reparación
+                    var celdaFechaReparacion = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoFechaReparacion = document.createTextNode(table.rows({selected: true}).data()[index].fechaReparacion);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaFechaReparacion.appendChild(contenidoFechaReparacion);
+
 
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
@@ -352,38 +371,13 @@
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
-                var comprobarPrecioServicio = null;
-
-                $.ajax({
-                async: false,
-                url: '{{route("getComprobacionPrecioDiagnostico")}}',
-                method: 'GET',
-                    success: function(response){
-                        if(response.error){
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Error en Registrar Pago Diagnóstico.',
-                            text: response.error,
-                            });
-
-                            comprobarPrecioServicio = false;
-                        } else{
-                            comprobarPrecioServicio = true;
-                        }
-                    },
-                    error: function(){
-                            console.log(error);
-                        }
-                    });
-                console.log(comprobarPrecioServicio);
-
                 if(!rows_selected){
                     Swal.fire('Debe de elegir al menos un Equipo.');
-                }
-                
-                if(rows_selected && comprobarPrecioServicio){
+                } else {
                     stepper1.next();
                 }
+                
+               
 
             });
 
@@ -402,7 +396,7 @@
             $('body').on('click', '.detBtn', function (){
 
             var id = $(this).data('id');
-            var url = '{{route("getDetalleEquipoDiagnosticoPago", ":id")}}';
+            var url = '{{route("getDetalleEquipoReparacionPago", ":id")}}';
             url = url.replace(':id', id);
 
             $.ajax({
@@ -531,7 +525,7 @@
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
                 //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Reparación Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
         
 
                 headerH2.appendChild(buttonH2);

@@ -70,5 +70,25 @@ class EstadoSeeder extends Seeder
             'nombre' => 'Equipo Repuesto',
             'descripcion' => 'Equipo que se registró para que se utilice como repuesto para reparaciones futuras.',
         ]);
+        Estado::create([ 
+            'nombre' => 'Equipo Abandonado',
+            'descripcion' => 'Equipo del cliente que luego de no pagarse según lo especificado en los términos y condiciones, se registró para que se utilice como repuesto para reparaciones futuras.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Equipo Retirado por Tercero',
+            'descripcion' => 'Equipo del Cliente que luego de asignarse a un Tercero, este lo retira del local para su respecto Diagnóstico o Reparación.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Equipo Ingresado por Tercero',
+            'descripcion' => 'Equipo del Cliente que luego de asignarse a un Tercero, este lo Diagnostica o Repara y realiza la devolución en el respectivo local.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Presupuesto Rechazado',
+            'descripcion' => 'El Presupuesto que ha ofrecido el Gerente para realizar la reparación según el Diagnóstico dado, ha sido rechazado por el Cliente.',
+        ]);
+        Estado::create([ 
+            'nombre' => 'Equipo Retirado por Cliente',
+            'descripcion' => 'El Cliente se acerca al Local para realizar el retiro de su Equipo, esto se registra.',
+        ]);
     }
 }

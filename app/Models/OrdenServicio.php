@@ -23,7 +23,7 @@ class OrdenServicio extends Model
         'fechafin',
     ];
 
-    public $timestamps = false;
+    const UPDATED_AT = null;
 
 
     public function equipo(){
@@ -35,7 +35,7 @@ class OrdenServicio extends Model
     {
         return $this->belongsToMany(
             Estado::class, 'equipos_estados_users_ordenes', 'id_orden', 'id_estado'
-        )->orderBy('equipos_estados_users_ordenes.created_at', 'desc');
+        )->orderBy('equipos_estados_users_ordenes.created_at', 'desc')->withPivot('created_at');;
     }
 
     public function users()

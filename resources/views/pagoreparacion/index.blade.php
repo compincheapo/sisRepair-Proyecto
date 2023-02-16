@@ -3,7 +3,7 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h3 class="page__heading">Pagos Diagnóstico</h3>
+            <h3 class="page__heading">Pagos Reparación</h3>
             @can('crear-usuario')
                 <a class="btn btn-warning section-header-breadcrumb" style="float:right;" href="{{route('pagodiagnostico.create')}}">Nuevo</a>
             @endcan
