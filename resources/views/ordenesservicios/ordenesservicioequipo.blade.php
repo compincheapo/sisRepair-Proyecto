@@ -15,6 +15,13 @@
             <h3 class="page__heading">Ordenes de Servicio</h3>
                 <a class="btn btn-info section-header-breadcrumb" style="float:right;" href="{{route('equipos.misequiposdiagnostico')}}">Volver</a>
         </div>
+        @if (\Session::has('success'))
+            <div class="alert alert-success">
+                <ul>
+                    <li>{!! \Session::get('success') !!}</li>
+                </ul>
+            </div>
+        @endif
         <div class="section-body">
             <div class="row">
                 <div class="col-lg-12">

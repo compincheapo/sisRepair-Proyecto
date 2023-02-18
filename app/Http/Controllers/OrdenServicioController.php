@@ -11,6 +11,8 @@ use App\Models\Servicio;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use App\Models\Pago;
 
 class OrdenServicioController extends Controller
 {
@@ -262,6 +264,61 @@ class OrdenServicioController extends Controller
         $presupuesto = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();
 
         return view('ordenesservicios.pagoorden', compact('orden', 'equipo', 'ultimaOrdenDiagnostico', 'presupuesto'));
+    }
+
+    public function getResultadoPagoOrdenSatisfactoria(Request $request, $id){
+
+        if($request->get('status') == 'approved'){
+            $cliente = Auth::user();
+            $orden = OrdenServicio::findOrfail($id)->where('id', $id)->first();
+            $equipo = $orden->equipo;
+            $ultimaOrdenDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
+            
+            $presupuesto = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();       
+
+            DB::table('pagomercadopago')->insert([
+                'collection_id' => $request->get('collection_id'),
+                'collection_status' => $request->get('collection_status'),
+                'payment_id' => $request->get('payment_id'),
+                'status' => $request->get('status'),
+                'payment_type' => $request->get('payment_type'),
+                'merchant_order_id' => $request->get('merchant_order_id'),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+    
+            ]);
+
+            $pago = new Pago;
+            $pago->id_tipopago = 2;
+            $pago->fechapago = \Carbon\Carbon::now();
+            $pago->precio = $presupuesto->presupuesto;
+            $pago->save();
+
+            DB::table('ordenservicios_pagos')->insert([
+                'id_pago' => $pago->id,
+                'id_orden' => $id,
+            ]);
+
+            DB::table('equipos_estados_users_ordenes')->insert([
+                'id_equipo' => $equipo->id,
+                'id_estado' => 13,
+                'id_user' => $cliente->id,
+                'id_orden' => $id,
+                'descripcion' => '',
+    
+            ]);
+
+            return redirect()->route('ordenesequipo', [$equipo->id])->with('success', 'Se registró con Éxito el pago de la Orden de Servicio ' . $id); 
+
+        } else {
+            return Redirect::back()->withErrors(['msg' => 'El pago de la 
+            Orden de Servicio ' . $id , 'ha sido rechazado por MercadoPago, intentelo más tarde.']);
+        }
+    }
+    public function getResultadoPagoOrdenFallo(Request $request, $id){
+        return Redirect::back()->withErrors(['msg' => 'Ha surgido un problema con el proceso de pago de Mercadopago para el pago de la 
+        Orden de Servicio ' . $id , 'intentelo más tarde.']);
+   
     }
 
 }

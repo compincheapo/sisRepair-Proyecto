@@ -95,6 +95,9 @@ Route::post('/equipos/ordenes/rechazarpresupuesto', [UsuarioController::class, '
 
 Route::get('/ordenes/orden/pago/{id}', [OrdenServicioController::class, 'pagarOrdenServicio'])->name('pagarOrdenServicio')->middleware('auth');
 
+Route::get('/ordenes/orden/pago/success/{id}', [OrdenServicioController::class, 'getResultadoPagoOrdenSatisfactoria'])->name('getResultadoPagoOrdenSatisfactoria')->middleware('auth');
+
+Route::get('/ordenes/orden/pago/failure/{id}', [OrdenServicioController::class, 'getResultadoPagoOrdenFallo'])->name('getResultadoPagoOrdenFallo')->middleware('auth');
 
 
 // --------------------------

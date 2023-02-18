@@ -200,7 +200,7 @@ class UsuarioController extends Controller
     public function pdfUsuarios(){
         //dd("hola");
         $users = User::all();
-        $pdf = PDF::loadView('usuarios.pdf', compact('users'));
+        $pdf = PDF::loadView('comprobante.servicios', compact('users'));
         return $pdf->stream();
     }
 

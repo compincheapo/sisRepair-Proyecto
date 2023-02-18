@@ -164,13 +164,6 @@ body.sidebar-mini .main-sidebar:after {
                 <li class="{{ Request::is('/equipos/misequiposdiagnostico') ? 'active' : '' }}">
                     <a href="{{ url('/equipos/misequiposdiagnostico') }}" class="primario" style="height:50px">Mis Equipos en Diagnóstico </a>
                 </li>
-            @endif
-
-            @if(Auth::user()->getRoleNames()->first() == "Cliente" || Auth::user()->getRoleNames()->first() == "Admin")
-                <hr style="margin-top:1px; margin-bottom:1px">
-                <li class="{{ Request::is('/pepe') ? 'active' : '' }}">
-                    <a href="{{ url('/pepe') }}" class="primario">Mis Equipos en Reparación </a>
-                </li>
                 <hr style="margin-top:1px; margin-bottom:1px">
             @endif
         </ul>

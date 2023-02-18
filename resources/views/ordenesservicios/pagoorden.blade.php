@@ -2,11 +2,53 @@
 
 
 @section('content')
+    @php
+        require base_path('/vendor/autoload.php');
+        // Agrega credenciales
+        MercadoPago\SDK::setAccessToken(config('services.mercadopago.token'));
+
+        // Crea un objeto de preferencia
+        $preference = new MercadoPago\Preference();
+
+        // Crea un ítem en la preferencia
+        $item = new MercadoPago\Item();
+
+        if($orden->id_servicio == 1){
+            $item->title = 'Orden de Servicio ' . $orden->id . ': Diagnostico.';
+
+        } 
+        if($orden->id_servicio == 2){
+            $item->title = 'Orden de Servicio ' . $orden->id . ': Reparación.';
+
+        } 
+
+        $preference->back_urls = array(
+            "success" =>  route('getResultadoPagoOrdenSatisfactoria', $orden->id),
+            "failure" =>  route('getResultadoPagoOrdenFallo', $orden->id) ,
+        );
+
+        $preference->auto_return = "approved";
+        $preference->binary_mode = true;
+
+        $item->quantity = 1;
+        $item->unit_price = $presupuesto->presupuesto;
+        $preference->items = array($item);
+        $preference->save();
+    @endphp
+    
     <section class="section">
         <div class="section-header">
             <h3 class="page__heading">Pago Orden de Servicio {{$orden->id}}</h3>
             <a class="btn btn-info section-header-breadcrumb" style="float:right;" href="{{route('ordenesequipo', $equipo->id)}}">Volver</a>
         </div>
+        @if($errors->any())
+        <div class="alert alert-danger">
+                <ul>
+                    <li>{{$errors->first()}}</li>
+                </ul>
+        </div>
+        @endif
+        
         <div class="section-body">
             <div class="row">
                 <div class="col-lg-12">
@@ -87,8 +129,8 @@
                             
                         <span style="font-weight:bold; font-size:1rem">Total a pagar: {{$presupuesto->presupuesto}}</span>
                        
-                        <a class="btn btn-success section-header-breadcrumb" style="float:right;" href="{{route('ordenesequipo', $equipo->id)}}">Realizar Pago  <i class="far fa-credit-card"></i></a>
-                            
+                        <!-- <a class="btn btn-success section-header-breadcrumb"  href="{{route('ordenesequipo', $equipo->id)}}">Realizar Pago  <i class="far fa-credit-card"></i></a> -->
+                        <div class="cho-container" style="float:right;"></div>   
                           
                     </div>
                 </div>
@@ -96,10 +138,22 @@
         </div>
     </section>
 
-    <script>
-
-
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     
+    <script>
+    const mp = new MercadoPago("{{config('services.mercadopago.key')}}", {
+        locale: 'es-AR'
+    });
+
+    mp.checkout({
+        preference: {
+        id: '{{$preference->id}}'
+        },
+        render: {
+        container: '.cho-container',
+        label: 'Pagar',
+        }
+    });
     </script>
 
 @endsection
