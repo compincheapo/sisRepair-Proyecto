@@ -38,6 +38,8 @@ class CreateRepuestosTable extends Migration
                   ->constrained('tiporepuestos')
                   ->cascadeOnUpdate()
                   ->nullOnDelete();
+
+            $table->timestamps();
         });
     }
 

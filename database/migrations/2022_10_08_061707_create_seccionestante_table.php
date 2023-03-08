@@ -22,7 +22,7 @@ class CreateSeccionestanteTable extends Migration
                   ->constrained('estantes')
                   ->cascadeOnUpdate()
                   ->nullOnDelete();
-                  
+            $table->timestamps();       
         });
     }
 

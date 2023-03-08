@@ -92,11 +92,12 @@
                         <input type="datetime-local" name="fechafinhasta" value= "{{$fechaFinalizacionHastaData}}" class="form-control">
                     </div>
                      
-                       <div class="form-group col-md-12">
-                            <button class="btn btn-light btn btn-icon icon-left"><i class="fas fa-filter"></i>Filtrar</button>
-                            <a href="{{route('usuarios.pdf')}}" class="btn btn-warning">PDF</a>
-                            <a href="{{ url('/ordenesservicios') }}" class="btn btn-info">Limpiar</a>
-                        </div>
+                    <div class="form-group col-md-12">
+                        <input type="submit" name="submitbtn" value="Filtrar" class="btn btn-light btn btn-icon icon-left"></input>
+                        <input type="submit" name="submitbtn" value="PDF" class="btn btn-warning btn btn-icon icon-left"></input>
+                        <a href="{{ url('/ordenesservicios') }}" class="btn btn-info">Limpiar</a>
+                    </div>
+                    
                     </div>
                     </form>
                     </div>
@@ -111,7 +112,7 @@
                                     <th style="color: #fff;">Nro Orden</th>
                                     <th style="color: #fff;">Cliente</th>
                                     <th style="color: #fff;">Servicio</th>
-                                    <th style="color: #fff;">Fecha Compromiso</th>
+                                    <th style="color: #fff;">Fecha Estimada</th>
                                     <th style="color: #fff;">Estado</th>
                                     <th style="color: #fff;">Fecha Fin</th>
                                     <th style="color: #fff;">Acción</th>
@@ -388,27 +389,56 @@
             buttonH2.setAttribute('aria-controls', 'collapseOne');
             buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+
+            var createdDate = new Date(response.data[0].comentarios[i].created_at);
+            var hours = createdDate.getHours();
+            var minutes = createdDate.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            var strTime = hours + ':' + minutes + ' ' + ampm;
+
+            var mes = '';
+            if(parseInt((createdDate.getMonth()+1)) <= 9){
+                mes = '0' + (createdDate.getMonth()+1)
+            } else {
+                mes = (createdDate.getMonth()+1);
+                
+            }
+    
+            var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
+
             //Control de Tipo de Comentario o Detalle
             if(response.data[0].comentarios[i].id_estado == 1){
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 8){
-                buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 4){
-                buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 5){
-                buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 10){
-                buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
+
+            if(response.data[0].comentarios[i].id_estado == 15){
+                buttonH2.innerHTML = 'Detalle Abandono ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+            }
+
+
            
+            
+
 
             headerH2.appendChild(buttonH2);
 

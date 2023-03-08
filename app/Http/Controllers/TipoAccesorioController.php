@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TipoAccesorio;
+use PDF;
 
 class TipoAccesorioController extends Controller
 {
@@ -15,11 +16,65 @@ class TipoAccesorioController extends Controller
         $this->middleware('permission:borrar-tiposaccesorios', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $tipoaccesorios = TipoAccesorio::paginate(5);
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
 
-        return view('tipoaccesorios.index', compact('tipoaccesorios'));
+        if($request->nombre || $request->descripcion){
+            $tipoaccesorios = TipoAccesorio::where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $tipoaccesorios = $tipoaccesorios->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tipoaccesorios = $tipoaccesorios->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $tipoaccesorios = TipoAccesorio::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tipoaccesorios = TipoAccesorio::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('tipoaccesorios.pdf', compact('tipoaccesorios', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('tipoaccesorios.index', compact('tipoaccesorios', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $tipoaccesorios = TipoAccesorio::paginate(5);
+            return view('tipoaccesorios.index', compact('tipoaccesorios', 'nombre', 'descripcion'));
+        }
+        
+        return view('tipoaccesorios.index', compact('tipoaccesorios','nombre', 'descripcion'));
     }
 
     /**

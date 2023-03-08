@@ -8,7 +8,7 @@ use App\Models\Equipo;
 use App\Models\Servicio;
 use App\Models\Pago;
 use App\Models\OrdenPresupuesto;
-
+use Carbon\Carbon;
 
 class OrdenServicio extends Model
 {
@@ -73,4 +73,21 @@ class OrdenServicio extends Model
     {
         return $this->hasOne(OrdenPresupuesto::class, 'id_orden', 'id');
     }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y');
+    }
+
+    public function getFechacompromisoAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y');
+    }
+
+    public function getFechafinAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+
 }

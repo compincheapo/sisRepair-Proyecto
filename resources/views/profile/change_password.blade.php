@@ -6,7 +6,6 @@
                 <h5 class="modal-title">Cambiar Contraseña</h5>
                 <button type="button" aria-label="Close" class="close outline-none" data-dismiss="modal">×</button>
             </div>
-            <form method="POST" id='changePasswordForm'>
             <div class="modal-body">
                 @if ($errors->any())
                     <div class="alert alert-danger">
@@ -19,6 +18,7 @@
                 @endif
                 <div class="alert alert-danger d-none" id=""></div>
                     <input type="hidden" name="is_active" value="1">
+                    <input type="hidden" name="id" id="id">
                     <input type="hidden" name="user_id" id="editPasswordValidationErrorsBox">
                     {{csrf_field()}}
                 <div class="row">
@@ -68,8 +68,63 @@
                     </button>
                 </div>
             </div>
-            </form>
         </div>
     </div>
 </div>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $('body').on('click', '#btnPrPasswordEditSave', function (){
+        id ="<?php echo  \Illuminate\Support\Facades\Auth::user()->id ?>";
+        
+        var contraActual = $('#pfCurrentPassword').val();
+        var contraNueva = $('#pfNewPassword').val();
+        var contraNuevaConfirm = $('#pfNewConfirmPassword').val();
+        
+        $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+        });
+
+
+        $.ajax({
+            url: "{{route('cambiarPassword')}}",
+            method: 'POST',
+            data: {
+            'idUser': id,
+            'contraActual': contraActual,
+            'contraNueva': contraNueva,
+            'contraNuevaConfirm': contraNuevaConfirm         
+            },
+            success: function(response){
+                console.log(response);
+
+                if(response.success){
+                    Swal.fire(
+                    'Cambio de contraseña realizada!',
+                    response.success, "success")       
+                    
+                    $('#changePasswordModal').modal('hide');
+
+                    $('#pfCurrentPassword').val('');
+                    $('#pfNewPassword').val('');
+                    $('#pfNewConfirmPassword').val('');
+                }
+
+                if(response.error){
+                    Swal.fire(
+                    'Error en cambio de Contraseña!',
+                    response.error, "error")    
+                }
+
+                },
+            error: function(error){
+                if(error){ 
+                console.log(error)
+                }
+            }
+        });
+        
+    });
+</script>
 <?php

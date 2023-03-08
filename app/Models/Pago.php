@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\TipoPago;
 use App\Models\OrdenServicio;
-
+use Carbon\Carbon;
 
 class Pago extends Model
 {
@@ -31,5 +31,11 @@ class Pago extends Model
             'id_orden'
             );
     }
+
+    public function getFechapagoAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
 
 }

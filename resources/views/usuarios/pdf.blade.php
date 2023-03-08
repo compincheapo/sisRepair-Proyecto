@@ -182,7 +182,7 @@
 </head>
 <body>
 	<div id="header">
-  <table style="width:100%">
+            <table style="width:100%">
                   <tr>
                     <td style="width: 80%; vertical-align:top">
                       <strong>SIC Servicios Informáticos </strong><br>
@@ -191,36 +191,45 @@
                       Celular: (3758) 488098 <br>
                     </td>
                     <td style="width: 20%;">
-                    <img src="https://scontent.fpss4-1.fna.fbcdn.net/v/t39.30808-6/304777660_516727370453388_6671136609261858505_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=ElNJgyrKfHQAX9ohehj&_nc_ht=scontent.fpss4-1.fna&oh=00_AT9w27ndCJ-UT_PPzryQWdHXSXGLMFTxoZ23J1J0hyBkFQ&oe=6343429B" alt="logo" width="145px">
+                    <img src="{{ public_path('img/logo2.jpg') }}" alt="logo" width="145px">
                     </td>
                   </tr>
+                  <tr>
+                      <td style="width: 100%;text-align: left;font-size:10px" colspan="2">
+                      <b>Datos filtrados por: </b>
+                      <span>{{$filtrado}}</span>
+                      </td>
+                    </tr>
               </table>  
   </div>
               
 
 
-    <main>
-        <table class="table">
+    <main style="margin-top:8px">
+        <table class="table" style="font-size:10px">
             <thead>
+               
                 <tr>
-                    <th scope="col">Id</th>
                     <th scope="col">Nombre</th>
                     <th scope="col">Apellido</th>
-                    <th scope="col">Username</th>
+                    <th scope="col">Usuario</th>
                     <th scope="col">Correo</th>
-                    <th scope="col">Verified At</th>
+                    <th scope="col">Correo Verificado en</th>
+                    <th scope="col">Creado en</th>
+                    <th scope="col">Actualizado en</th>
                     
                 </tr>
             </thead>
            <tbody>
-             @foreach($users as $user)
-              <tr>
-                  <td>{{$user->id}}</td>
-                  <td>{{$user->name}}</td>
-                  <td>{{$user->lastname}}</td>
-                  <td>{{$user->username}}</td>
-                  <td>{{$user->email}}</td>
-                  <td>{{$user->email_verified_at}}</td>
+             @foreach($usuarios as $usuario)
+              <tr> 
+                  <td>{{$usuario->name}}</td>
+                  <td>{{$usuario->lastname}}</td>
+                  <td>{{$usuario->username}}</td>
+                  <td>{{$usuario->email}}</td>
+                  <td>{{$usuario->email_verified_at}}</td>
+                  <td>{{$usuario->created_at}}</td>
+                  <td>{{$usuario->updated_at}}</td>
               </tr>
              @endforeach
             </tbody>
@@ -237,7 +246,7 @@
                 $x = ($pdf->get_width() - $width);
                 $y = $pdf->get_height() - 35;
                 $pdf->page_text($x, $y, $text, $font, $size);
-                $pdf->page_text(40, $y, "Generado por: ".Auth::user()->name." - ".now()->format('d/m/Y H:i:s'), $font, $size);
+                $pdf->page_text(40, $y, "Generado por: ". Auth::user()->lastname . " " . Auth::user()->name." - ".now()->format('d/m/Y H:i:s'), $font, $size);
             }
 	</script>
 </body>

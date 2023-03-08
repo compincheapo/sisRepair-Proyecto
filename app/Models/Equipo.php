@@ -12,6 +12,7 @@ use App\Models\TipoAccesorio;
 use App\Models\Estado;
 use App\Models\OrdenServicio;
 use OwenIt\Auditing\Contracts\Auditable;
+use Carbon\Carbon;
 
 class Equipo extends Model implements Auditable
 {
@@ -28,9 +29,6 @@ class Equipo extends Model implements Auditable
     ];
 
     protected $guarded = [];
-
-    public $timestamps = false;
-
 
     public function seccionEstante(){
         return $this->belongsTo(SeccionesEstante::class, 'id_seccionestante', 'id');
@@ -81,5 +79,16 @@ class Equipo extends Model implements Auditable
     public function orden(){
         return $this->hasMany(OrdenServicio::class, 'id_equipo', 'id');
     }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
 
 }

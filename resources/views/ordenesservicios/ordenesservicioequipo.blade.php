@@ -34,7 +34,7 @@
                                     <th style="color: #fff;">Nro Orden</th>
                                     <th style="color: #fff;">Cliente</th>
                                     <th style="color: #fff;">Servicio</th>
-                                    <th style="color: #fff;">Fecha Compromiso</th>
+                                    <th style="color: #fff;">Fecha Estimada</th>
                                     <th style="color: #fff;">Estado</th>
                                     <th style="color: #fff;">Fecha Fin</th>
                                     <th style="color: #fff;">Acción</th>
@@ -125,6 +125,7 @@
                     </div>     
                     <h6>Detalles Presupuesto y Pago</h6> 
                     <p id="no-presupuesto-pago" style="display:none">No hay detalles de presupuesto y pago disponibles.</p> 
+                    <p id="presupuesto-aceptado" style="display:none">El presupuesto del Diagnóstico fue aceptado, una nueva orden ha sido creada para un servicio de Reparación.</p> 
                     <div class="row" id="divRowBro">
                         <div class="col-xs-3 col-sm-3 col-md-3" id="div-presupuesto">
                             <div class="form-group mb-3" >
@@ -192,7 +193,7 @@
             $('#retroid').val(id);  
             $('#exampleModal2').modal('show');
             $('#exampleModalLabel2').html('Retroalimentación Orden de Servicio');
-            $('#labelDetalle').html('Retroalimentación');
+            $('#labelDetalle').html('Ingrese un comentario respecto a la Orden de Servicio realizada sobre su Equipo.');
             $('#detalleaceptpre').val('');
             $('#btnAceptarPre2').addClass("d-none");
             $('#btnAceptarRetro').removeClass("d-none");
@@ -258,6 +259,7 @@
             $('#pago').val("");
             $('#presupuesto').val("");
             $('#no-presupuesto-pago').attr('style', 'display:none');
+            $('#presupuesto-aceptado').attr('style', 'display:none');
             $("#div-presupuesto").removeAttr("style", "display: none");
             $("#div-pago").removeAttr("style", "display: none");
             $('#divRowBro').removeClass("d-none");
@@ -265,6 +267,11 @@
             if(response.data[0].servicio == 1 && response.data[0].estado == 10){
                 $('.rechBtn').removeClass("d-none");
                 $('.aceptBtn').removeClass("d-none");
+            }
+
+            if(response.data[0].servicio == 1 && response.data[0].estado == 11){
+                $('#presupuesto-aceptado').removeAttr('style');
+                $("#div-pago").attr("style", "display: none");
             }
 
             if(response.data[0].presupuesto){
@@ -408,25 +415,47 @@
             buttonH2.setAttribute('aria-controls', 'collapseOne');
             buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+
+            var createdDate = new Date(response.data[0].comentarios[i].created_at);
+            var hours = createdDate.getHours();
+            var minutes = createdDate.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            var strTime = hours + ':' + minutes + ' ' + ampm;
+
+            var mes = '';
+            if(parseInt((createdDate.getMonth()+1)) <= 9){
+                mes = '0' + (createdDate.getMonth()+1)
+            } else {
+                mes = (createdDate.getMonth()+1);
+            }
+
+            var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
             //Control de Tipo de Comentario o Detalle
             if(response.data[0].comentarios[i].id_estado == 1){
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 8){
-                buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 4){
-                buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 5){
-                buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
 
             if(response.data[0].comentarios[i].id_estado == 10){
-                buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+            }
+            if(response.data[0].comentarios[i].id_estado == 15){
+                buttonH2.innerHTML = 'Detalle Abandono ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
             }
            
 

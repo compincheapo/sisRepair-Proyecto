@@ -182,7 +182,7 @@ $(document).ready(function() {
       
 
       $('#id').val(response.data[0].id);
-      $('#fechaingreso').val(response.data[0].fechaIngreso.created_at);
+      $('#fechaingreso').val(response.data[0].fechaIngreso);
       $('#fechacompromiso').val(response.data[0].fechacompromiso);
       
 
@@ -293,13 +293,31 @@ $(document).ready(function() {
         buttonH2.setAttribute('aria-controls', 'collapseOne');
         buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+        var createdDate = new Date(response.data[0].comentarios[i].created_at);
+        var hours = createdDate.getHours();
+        var minutes = createdDate.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+
+        var mes = '';
+        if(parseInt((createdDate.getMonth()+1)) <= 9){
+            mes = '0' + (createdDate.getMonth()+1)
+        } else {
+            mes = (createdDate.getMonth()+1);
+        }
+
+        var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
         //Control de Tipo de Comentario o Detalle
         if(response.data[0].comentarios[i].id_estado == 1){
-          buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         if(response.data[0].comentarios[i].id_estado == 9){
-          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         headerH2.appendChild(buttonH2);
@@ -616,7 +634,7 @@ $.ajax({
         //label Group
         var labelGroup2 = document.createElement("label");
         labelGroup2.setAttribute('id', 'labelGroup2');
-        labelGroup2.innerHTML = 'Detalle'
+        labelGroup2.innerHTML = 'Detalle de Diagnóstico realizado sobre el Equipo'
         divGroup.appendChild(labelGroup2);
 
         //Detalle finalización

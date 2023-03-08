@@ -120,16 +120,7 @@
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
                             <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
                         </div>
-                    </div>
-                    <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a>
-                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
-
-                    <p><button>Submit</button></p>
-
-                    <p><b>Selected rows data:</b></p>
-                    <pre id="example-console-rows"></pre>
-
-                    <p><b>Form data as submitted to the server:</b></p> -->
+                    </div>                   
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -616,8 +607,26 @@
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+                var createdDate = new Date(response.data[0].comentario.created_at);
+                var hours = createdDate.getHours();
+                var minutes = createdDate.getMinutes();
+                var ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+
+                var mes = '';
+                if(parseInt((createdDate.getMonth()+1)) <= 9){
+                    mes = '0' + (createdDate.getMonth()+1)
+                } else {
+                    mes = (createdDate.getMonth()+1);
+                }
+
+                var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
                 //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         
 
                 headerH2.appendChild(buttonH2);

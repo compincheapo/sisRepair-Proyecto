@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Estante;
+use PDF;
 
 class EstanteController extends Controller
 {
@@ -15,12 +16,65 @@ class EstanteController extends Controller
         $this->middleware('permission:secciones-estante', ['only' => ['show']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $estantes = Estante::paginate(5);
-        //dd($estantes);
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
 
-        return view('estantes.index', compact('estantes'));
+        if($request->nombre || $request->descripcion){
+            $estantes = Estante::where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $estantes = $estantes->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $estantes = $estantes->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $estantes = Estante::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $estantes = Estante::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('estantes.pdf', compact('estantes', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('estantes.index', compact('estantes', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $estantes = Estante::paginate(5);
+            return view('estantes.index', compact('estantes', 'nombre', 'descripcion'));
+        }
+        
+        return view('estantes.index', compact('estantes','nombre', 'descripcion'));
     }
 
     public function create()
@@ -68,14 +122,68 @@ class EstanteController extends Controller
     }
 
 
-    public function show($id)
+    public function show($id, Request $request)
     {
         $estante = Estante::findOrfail($id);
-        //dd($estante);
-        $seccionesestante = $estante->seccionesEstante()->paginate(5);
-        //dd($seccionesestante);
+        $seccionesestante = $estante->seccionesEstante();
 
-        return view('seccionesestante.index', compact('seccionesestante', 'estante'));
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
+
+        if($request->nombre || $request->descripcion){
+            $seccionesestante = $seccionesestante->where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $seccionesestante = $seccionesestante->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $seccionesestante = $seccionesestante->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $seccionesestante = $seccionesestante->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $seccionesestante = $seccionesestante->paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('seccionesestante.pdf', compact('seccionesestante', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('seccionesestante.index', compact('seccionesestante', 'estante', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $seccionesestante = $seccionesestante->paginate(5);
+            return view('seccionesestante.index', compact('seccionesestante', 'estante', 'nombre', 'descripcion'));
+        }
+        
+        return view('seccionesestante.index', compact('seccionesestante', 'estante', 'nombre', 'descripcion'));
+
     }
 
 }

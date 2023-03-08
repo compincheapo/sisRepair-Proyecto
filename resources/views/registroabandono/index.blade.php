@@ -12,80 +12,93 @@
             <div class="row">
                 <div class="col-lg-12">
                 <div class="card">
-                  <div class="card-header">
-                    <h4>Filtros de Búsqueda</h4>
-                    <div class="card-header-action">
-                      <a data-collapse="#mycard-collapse" class="btn btn-icon btn-info" href="#"><i class="fas fa-plus"></i></a>
-                    </div>
-                  </div>
-                  <div class="collapse" id="mycard-collapse">
-                    <div class="card-body">
-                    <form class="form" action="{{ route('pagodiagnostico.index')}}" method="GET">
-                    <div class="row">
-                    <div class="form-group col-md-6"> 
-                            <label for="usuario">Cliente</label>
-                            <select name="usuario" class="form-control js-example-basic-single" style="width:100%">
-                                <option value="">Seleccione...</option>
-                                @foreach($usuarios as $usuario)
-                                
-                                    @if(!empty($usuarioData) && $usuario->id == $usuarioData->id)
-                                        <option value="{{$usuario->id}}" selected>{{$usuario->name}} {{$usuario->lastname}}</option>    
-                                    @else
-                                        <option value="{{$usuario->id}}">{{$usuario->name}} {{$usuario->lastname}}</option>    
-                                    @endif
-                                @endforeach
-                            </select>
-                    </div>
-
-                    <div class="form-group col-md-6"> 
-                            <label for="marca">Marca</label>
-                            <select name="marca" class="form-control">
-                                    <option value="">Seleccione...</option>    
-                                    @foreach($marcas as $marca)
-                                        @if($marcaData && $marca->id == $marcaData->id)
-                                            <option value="{{$marca->id}}" selected>{{$marca->nombre}}</option>
-                                        @endif
-                                        <option value="{{$marca->id}}">{{$marca->nombre}}</option>
-                                    @endforeach
-                            </select>
-                    </div>
-
-                    <div class="form-group col-md-6"> 
-                            <label for="tipoequipo">Tipo Equipo</label>
-                            <select name="tipoequipo" class="form-control">
-                                    <option value="">Seleccione...</option>    
-                                    @foreach($tiposequipo as $tipoequipo)
-                                        @if($tipoequipoData && $tipoequipo->id == $tipoequipoData->id)
-                                            <option value="{{$tipoequipo->id}}" selected>{{$tipoequipo->nombre}}</option>
-                                        @endif
-                                        <option value="{{$tipoequipo->id}}">{{$tipoequipo->nombre}}</option>
-                                    @endforeach
-                            </select>
-                    </div>
-
-                    <div class="form-group col-md-6"> 
-                            <label for="estante">Estante</label>
-                            <select name="estante" class="form-control">
-                                    <option value="">Seleccione...</option>    
-                                    @foreach($estantes as $estante)
-                                        @if($estanteData && $estante->id == $estanteData->id)
-                                            <option value="{{$estante->id}}" selected>{{$estante->nombre}}</option>
-                                        @endif
-                                        <option value="{{$estante->id}}">{{$estante->nombre}}</option>
-                                    @endforeach
-                            </select>
-                    </div>
-                     
-                       <div class="form-group col-md-12">
-                            <button class="btn btn-light btn btn-icon icon-left"><i class="fas fa-filter"></i>Filtrar</button>
-                            <a href="{{route('usuarios.pdf')}}" class="btn btn-warning">PDF</a>
-                            <a href="{{ url('/auditoria') }}" class="btn btn-info">Limpiar</a>
+                    <div class="card-header">
+                        <h4>Filtros de Búsqueda</h4>
+                        <div class="card-header-action">
+                        <a data-collapse="#mycard-collapse" class="btn btn-icon btn-info" href="#"><i class="fas fa-plus"></i></a>
                         </div>
                     </div>
-                    </form>
+                    <div class="collapse" id="mycard-collapse">
+                        <div class="card-body">
+                        <form class="form" action="{{ route('equipos.equiposAbandonados')}}" method="GET">
+                        <div class="row">
+                        <div class="form-group col-md-6">
+                                <label for="serie">Serie</label>
+                                <input type="text" class="form-control" id="serie" name="serie" value="{{$serieData}}">
+                        </div>
+                        <div class="form-group col-md-6">
+                                <label for="modelo">Modelo</label>
+                                <input type="text" class="form-control" id="modelo" name="modelo" value="{{$modeloData}}">
+                        </div>
+
+                        <div class="form-group col-md-6"> 
+                                <label for="tipoequipo">Tipo Equipo</label>
+                                <select name="tipoequipo" class="form-control">
+                                        <option value="">Seleccione...</option>    
+                                        @foreach($tiposequipo as $tipoequipo)
+                                            @if($tipoequipoData && $tipoequipo->id == $tipoequipoData->id)
+                                                <option value="{{$tipoequipo->id}}" selected>{{$tipoequipo->nombre}}</option>
+                                            @else
+                                                <option value="{{$tipoequipo->id}}">{{$tipoequipo->nombre}}</option>
+                                            @endif
+                                        @endforeach
+                                </select>
+                        </div>
+
+                        <div class="form-group col-md-6"> 
+                                <label for="marca">Marca</label>
+                                <select name="marca" class="form-control">
+                                        <option value="">Seleccione...</option>    
+                                        @foreach($marcas as $marca)
+                                            @if($marcaData && $marca->id == $marcaData->id)
+                                                <option value="{{$marca->id}}" selected>{{$marca->nombre}}</option>
+                                            @else
+                                                <option value="{{$marca->id}}">{{$marca->nombre}}</option>
+                                            @endif
+                                        @endforeach
+                                </select>
+                        </div>
+
+                        <div class="form-group col-md-6"> 
+                                <label for="estante">Estante</label>
+                                <select name="estante" class="form-control">
+                                        <option value="">Seleccione...</option>    
+                                        @foreach($estantes as $estante)
+                                            @if($estanteData && $estante->id == $estanteData->id)
+                                                <option value="{{$estante->id}}" selected>{{$estante->nombre}}</option>
+                                            @else
+                                                <option value="{{$estante->id}}">{{$estante->nombre}}</option>
+                                            @endif
+                                        @endforeach
+                                </select>
+                        </div>
+
+                        <div class="form-group col-md-6"> 
+                                <label for="usuario">Cliente</label>
+                                <select name="usuario" class="form-control js-example-basic-single" style="width:100%">
+                                    <option value="">Seleccione...</option>
+                                    @foreach($usuarios as $usuario)
+                                    
+                                        @if(!empty($usuarioData) && $usuario->id == $usuarioData->id)
+                                            <option value="{{$usuario->id}}" selected>{{$usuario->name}} {{$usuario->lastname}}</option>    
+                                        @else
+                                            <option value="{{$usuario->id}}">{{$usuario->name}} {{$usuario->lastname}}</option>    
+                                        @endif
+                                    @endforeach
+                                </select>
+                        </div>
+                        
+                        <div class="form-group col-md-12">
+                            <input type="submit" name="submitbtn" value="Filtrar" class="btn btn-light btn btn-icon icon-left"></input>
+                            <input type="submit" name="submitbtn" value="PDF" class="btn btn-warning btn btn-icon icon-left"></input>
+                            <a href="{{ url('/equipos/equiposabandonados') }}" class="btn btn-info">Limpiar</a>
+                            </div>
+                        </div>
+                        </form>
+                        </div>
                     </div>
-                  </div>
-                </div>
+                    </div>
+              
                     <div class="card">
                          @can('ver-usuario') <!-- Crear y adaptar esta parte con el permiso para auditoria -->
                         <div class="card-body">
@@ -118,7 +131,7 @@
                                     @endforeach
                                 </tbody>
                             </table>
-                                {!! $equiposAbandonados->appends(['usuario' => $usuarioData, 'marca' => $marcaData, 'tipoequipo' => '$tipoequipoData', 'estante' => '$estanteData' ])->links() !!}
+                                {!! $equiposAbandonados->appends(['usuario' => $usuarioData, 'marca' => $marcaData, 'tipoequipo' => '$tipoequipoData', 'estante' => '$estanteData', 'serie' => $serieData, 'modeloData' => $modeloData])->links() !!}
                         </div>
                         </div>
                         

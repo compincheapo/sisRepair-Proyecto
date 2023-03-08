@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Equipo;
+use Carbon\Carbon;
 
 class Marca extends Model
 {
@@ -15,11 +16,19 @@ class Marca extends Model
         'descripcion',
     ];
 
-    public $timestamps = false;
-
-
     public function equipos(){
         return $this->hasMany(Equipo::class, 'id_marca', 'id');
     }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
 
 }

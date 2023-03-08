@@ -16,8 +16,9 @@
                                     <th style="color: #fff;">Serie</th>
                                     <th style="color: #fff;">Modelo</th>
                                     <th style="color: #fff;">Tipo Equipo</th>
-                                    <th style="color: #fff;">Estante</th>
-                                    <th style="color: #fff;">Sección Estante</th>
+                                    <th style="color: #fff;">Ultima Orden</th>
+                                    <th style="color: #fff;">Estado Orden</th>
+                                    <th style="color: #fff;">Servicio</th>
                                     <th style="color: #fff;">Accesorios</th>
                                     <th style="color: #fff;">Cliente</th>
                                     <th style="color: #fff;">Acciones</th>
@@ -29,20 +30,52 @@
                                             <td>{{$equipo->serie}}</td>
                                             <td>{{$equipo->modelo}}</td>
                                             <td>{{$equipo->tipoequipo->nombre}}</td>
-                                            <td>{{$equipo->seccionestante->estante->nombre}}</td>
-                                            <td>{{$equipo->seccionestante->nombre}}</td>
+
+                                            @if(!empty($equipo->orden()->orderBy('created_at', 'desc')->first()->id))
+                                                <td>{{$equipo->orden()->orderBy('created_at', 'desc')->first()->id}}</td>
+                                            @else
+                                                <td>Sin Ordenes</td>
+                                            @endif
+                                            @if($equipo->orden()->first() && $equipo->orden()->orderBy('created_at', 'desc')->first()->finalizado == 1)
+                                                <td>Finalizado</td>
+                                            @elseif($equipo->orden()->first() && $equipo->orden()->orderBy('created_at', 'desc')->first()->finalizado == 0)
+                                                <td>No Finalizado</td>
+                                            @elseif(empty($equipo->orden()->first()))
+                                                <td style="text-align:center"> - </td>
+                                            @endif
+
+
+                                            @if($equipo->orden()->first() && $equipo->orden()->orderBy('created_at', 'desc')->first()->id_servicio == 1)
+                                                <td>Diagnóstico</td>
+                                            @elseif($equipo->orden()->first() && $equipo->orden()->orderBy('created_at', 'desc')->first()->id_servicio == 2)
+                                                <td>Reparación</td>
+                                            @elseif(empty($equipo->orden()->first()))
+                                                <td style="text-align:center"> - </td>
+                                            @endif
+
                                             <td>
                                             @foreach($equipo->accesorios as $accesorio)
                                             <span class="badge badge-dark mb-1">{{$accesorio->nombre}}</span>
                                             @endforeach
                                             </td>
                                             <td>{{$equipo->user->name . ' ' . $equipo->user->lastname}}</td>
+
+                                            @if($equipo->orden()->first())
                                             <td>
                                                 <div class="btn-group">
                                                 <a class="btn btn-info mr-1" href="{{route('ordenesequipo', $equipo->id)}}">Ordenes</a>
                                                 </div>
 
                                             </td>
+                                            @else
+                                            <td>
+                                                <div class="btn-group">
+                                                <a class="btn btn-secondary mr-1" href="#" onclick="event.preventDefault()">Ordenes</a>
+                                                </div>
+
+                                            </td>
+                                            @endif
+                                        
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -43,6 +43,8 @@ return [
             'username' => 'El nombre de usuario ha sido creado: <strong>:new</strong>',
             'email' => 'El email ha sido creado: <strong>:new</strong>',
             'password' => 'El password ha sido creado: <strong>:new</strong>',
+            'created_at' => 'Se ha creado en: <strong>:new</strong>',
+            'updated_at' => 'Se ha actualizado en: <strong>:new</strong>',
         ],
     ],
 

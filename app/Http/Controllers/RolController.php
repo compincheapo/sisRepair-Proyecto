@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use PDF;
 
 class RolController extends Controller
 {
@@ -22,11 +23,79 @@ class RolController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $roles = Role::paginate(5);
+        $name = $request->name;
+        
 
-        return view('roles.index', compact('roles'));
+        if($request->name){
+            $roles = Role::where('name', 'like', '%'.$request->name .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $roles = $roles->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $roles = $roles->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $roles = Role::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $roles = Role::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+            foreach($filtros as $key => $value) {
+                if($key == 'name'){
+                    $filtrado = 'Nombre: ' . $value. '.';
+                } else {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+            }
+           }
+
+
+           if(count($filtros) > 1){
+            $filtrado = '';
+            foreach($filtros as $key => $value) {
+                if($key == 'name'){
+                   $key = 'Nombre';
+                } else {
+
+                }
+                if($key == 'rol'){
+                    $rol = Role::findOrfail($value)->first();
+                    $value = $rol->name;
+                    $key = ucfirst($key);
+                }
+
+                $filtrado = $filtrado . $key . ':' . $value . ', ';
+            }
+            $filtrado = rtrim($filtrado, ", ");
+            $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('roles.pdf', compact('roles', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('roles.index', compact('roles', 'name'));
+        } elseif($request->submitbtn == null){
+            $roles = Role::paginate(5);
+            return view('roles.index', compact('roles', 'name'));
+        }
+        
+        return view('roles.index', compact('roles','name'));
     }
 
     /**

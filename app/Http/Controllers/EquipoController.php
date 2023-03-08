@@ -18,7 +18,7 @@ use App\Models\Repuesto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
-
+use PDF;
 
 class EquipoController extends Controller
 {
@@ -29,12 +29,137 @@ class EquipoController extends Controller
         $this->middleware('permission:borrar-equipos', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $equipos = Equipo::paginate(5);
+        $usuarios = User::with("roles")->whereHas("roles", function($q) {
+            $q->whereIn("name", ["Cliente"]);
+        })->get();
 
+        $estantes = Estante::select('id', 'nombre')->get();
+        $marcas = Marca::select('id','nombre')->get();
+        $tiposequipo = TipoEquipo::select('id', 'nombre')->get();
 
-        return view('equipos.index', compact('equipos'));
+        $estanteData = null;
+        $usuarioData = null;
+        $marcaData = null;
+        $tipoequipoData = null;
+        $serieData = $request->serie;
+        $modeloData = $request->modelo;
+
+        if($request->usuario){
+            $usuarioData = User::where('id', $request->usuario)->select('id', 'name', 'lastname')->first();
+        } 
+
+        if($request->marca){
+            $marcaData = Marca::where('id', $request->marca)->select('id', 'nombre')->first();
+        } 
+
+        if($request->tipoequipo){
+            $tipoequipoData = TipoEquipo::where('id', $request->tipoequipo)->select('id', 'nombre')->first();
+        } 
+
+        if($request->estante){
+            $estanteData = Estante::where('id', $request->estante)->select('id', 'nombre')->first();
+        } 
+
+        if($request->usuario || $request->marca ||  $request->tipoequipo || $request->estante || $request->serie || $request->modelo){
+            $equipos = Equipo::join('seccionesestante', 'equipos.id_seccionestante', 'seccionesestante.id')
+            ->select('equipos.*')
+            ->when($request->filled('usuario'), function ($query) use ($request) {
+                return $query->where('equipos.id_user', $request->usuario);
+            })->when($request->filled('marca'), function ($query) use ($request) {
+                return $query->where('equipos.id_marca', $request->marca);
+            })->when($request->filled('tipoequipo'), function ($query) use ($request) {
+                return $query->where('equipos.id_tipoequipo', $request->tipoequipo);
+            })->when($request->filled('estante'), function ($query) use ($request) {
+                return $query->where('seccionesestante.id_estante', $request->estante);
+            })->when($request->filled('serie'), function ($query) use ($request) {
+                return $query->where('equipos.serie', $request->serie);
+            })->when($request->filled('modelo'), function ($query) use ($request) {
+                return $query->where('equipos.modelo', $request->modelo);
+            })->paginate(5);
+        }else {
+            if($request->submitbtn == 'PDF'){
+                $equipos = Equipo::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $equipos = Equipo::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    
+                    if($key == 'tipoequipo'){
+                      $key = 'Tipo Equipo';
+                      $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedTipoEquipo->nombre;
+                    }
+                    if($key == 'marca'){
+                      $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedMarca->nombre;
+                    }
+                    if($key == 'estante'){
+                      $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedEstante->nombre;
+                    }
+                    if($key == 'usuario'){
+                      $selectedUser = User::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedUser->name . ' ' . $selectedUser->lastname;
+                    }
+
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    if($key == 'tipoequipo'){
+                        $key = 'Tipo Equipo';
+                        $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedTipoEquipo->nombre;
+                      }
+                      if($key == 'marca'){
+                        $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedMarca->nombre;
+                      }
+                      if($key == 'estante'){
+                        $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedEstante->nombre;
+                      }
+                      if($key == 'usuario'){
+                        $selectedUser = User::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedUser->name . ' ' . $selectedUser->lastname;
+                      }
+
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('equipos.pdf', compact('equipos', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('equipos.index', compact('equipos', 'estantes', 'usuarios', 'marcas', 'tiposequipo', 'estanteData', 'usuarioData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        } elseif($request->submitbtn == null){
+            $equipos = Equipo::paginate(5);
+            return view('equipos.index', compact('equipos', 'estantes', 'usuarios', 'marcas', 'tiposequipo', 'estanteData', 'usuarioData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        }
+
+        return view('equipos.index', compact('equipos', 'estantes', 'usuarios', 'marcas', 'tiposequipo', 'estanteData', 'usuarioData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
     }
 
     public function create()
@@ -172,9 +297,8 @@ class EquipoController extends Controller
             echo $output;
     }
 
-    public function getEquiposPresupuestados(){
+    public function getEquiposPresupuestosRechazados(){
         $equiposDiagnosticoPresupuestado = DB::table('equipos_estados_users_ordenes')
-        ->select('equipos_estados_users_ordenes.id_equipo')
         ->join('ordenesservicio', 'equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
         ->where('equipos_estados_users_ordenes.id_estado', 18)
         ->where('ordenesservicio.id_servicio', 1)
@@ -203,20 +327,38 @@ class EquipoController extends Controller
             ->where('users_ordenes.estadoAsignacion', 1)
             ->where('equipos.id', $equipo->id_equipo)->first();
 
+            $ultimaOrdenServicioDiagnostico = OrdenServicio::where('id_equipo', $equipo->id_equipo)
+            ->where('finalizado', 1)
+            ->where('id_servicio', 1)
+            ->orderBy('created_at', 'desc')->first();
+
             $fechaIngreso = DB::table('equipos')
             ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
             ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->select('equipos_estados_users_ordenes.created_at')
             ->where('equipos.id', $equipo->id_equipo)
             ->where('equipos_estados_users_ordenes.id_estado', 1)
-            ->select('equipos_estados_users_ordenes.created_at')
+            ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenServicioDiagnostico->id)
             ->first();
+
+            $precioServicioDiagnostico = DB::table('precios')
+            ->where('precios.id_servicio', 1)
+            ->orderBy('precios.created_at', 'desc')
+            ->first();
+
+            $existePago = DB::table('ordenservicios_pagos')->where('id_orden', $equipo->id_orden)->first();
             
             $equipos->name = $user->name . " " . $user->lastname;
             $equipos->estado = $estado->nombre;
-            $equipos->fechaIngreso = $fechaIngreso->created_at;
-                
+            $equipos->fechaIngreso = Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
+            $equipos->fechaDiagnostico = Carbon::parse($ultimaOrdenServicioDiagnostico->created_at)->format('d-m-Y');
+            $equipos->precio = $precioServicioDiagnostico->precio;
+        
+
             if($estado->id == 18){
-                $collection->push($equipos);
+                if(empty($existePago) || $existePago == null){
+                    $collection->push($equipos);
+                }
             }  
 
         }
@@ -226,6 +368,10 @@ class EquipoController extends Controller
     
 
     public function getEquiposAbandonados(Request $request){
+        $equiposAbandonados = Equipo::join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+        ->select('equipos.*')
+        ->where('equipos_estados_users_ordenes.id_estado', 15);
+
         $usuarios = User::with("roles")->whereHas("roles", function($q) {
             $q->whereIn("name", ["Cliente"]);
         })->get();
@@ -233,32 +379,14 @@ class EquipoController extends Controller
         $estantes = Estante::select('id', 'nombre')->get();
         $marcas = Marca::select('id','nombre')->get();
         $tiposequipo = TipoEquipo::select('id', 'nombre')->get();
-        $equiposAbandonados = Equipo::join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
-        ->select('equipos.*')
-        ->where('equipos_estados_users_ordenes.id_estado', 15)->paginate(5);
 
         $estanteData = null;
         $usuarioData = null;
         $marcaData = null;
         $tipoequipoData = null;
-        $estanteData = null;
+        $serieData = $request->serie;
+        $modeloData = $request->modelo;
 
-        
-        if($request->usuario || $request->marca ||  $request->tipoequipo){
-            $equiposAbandonados = Equipo::join('equipos_estados_users_ordenes', 'equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo')
-            ->join('tipoequipos', 'equipos.id_tipoequipo', '=', 'tipoequipos.id')
-            ->join('users', 'equipos.id_user', '=', 'users.id')
-            ->join('marcas', 'equipos.id_marca', '=', 'marcas.id')
-            ->join('seccionesestante', 'equipos.id_seccionesestante', '=', 'seccionesestante.id')
-            ->join('estantes', 'seccionesestante.id_estante', '=', 'estantes.id')
-            ->whereIn('users.id', [$request->get("usuario")])
-            ->whereIn('marcas.id', [$request->get("marca")])
-            ->whereIn('tipoequipos.id', [$request->tipoequipo])
-            ->whereIn('estantes.id', [$request->estante])
-            ->select('equipos.*')
-            ->paginate(5); 
-        }
-            
         if($request->usuario){
             $usuarioData = User::where('id', $request->usuario)->select('id', 'name', 'lastname')->first();
         } 
@@ -274,8 +402,103 @@ class EquipoController extends Controller
         if($request->estante){
             $estanteData = Estante::where('id', $request->estante)->select('id', 'nombre')->first();
         } 
-        
 
+        if($request->usuario || $request->marca ||  $request->tipoequipo || $request->estante || $request->serie || $request->modelo){
+            $equiposAbandonados = Equipo::join('seccionesestante', 'equipos.id_seccionestante', 'seccionesestante.id')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->select('equipos.*')->where('equipos_estados_users_ordenes.id_estado', 15)
+            ->when($request->filled('usuario'), function ($query) use ($request) {
+                return $query->where('equipos.id_user', $request->usuario);
+            })->when($request->filled('marca'), function ($query) use ($request) {
+                return $query->where('equipos.id_marca', $request->marca);
+            })->when($request->filled('tipoequipo'), function ($query) use ($request) {
+                return $query->where('equipos.id_tipoequipo', $request->tipoequipo);
+            })->when($request->filled('estante'), function ($query) use ($request) {
+                return $query->where('seccionesestante.id_estante', $request->estante);
+            })->when($request->filled('serie'), function ($query) use ($request) {
+                return $query->where('equipos.serie', $request->serie);
+            })->when($request->filled('modelo'), function ($query) use ($request) {
+                return $query->where('equipos.modelo', $request->modelo);
+            })->paginate(5);
+        }else {
+            if($request->submitbtn == 'PDF'){
+                $equiposAbandonados = $equiposAbandonados->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $equiposAbandonados = $equiposAbandonados->paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    
+                    if($key == 'tipoequipo'){
+                      $key = 'Tipo Equipo';
+                      $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedTipoEquipo->nombre;
+                    }
+                    if($key == 'marca'){
+                      $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedMarca->nombre;
+                    }
+                    if($key == 'estante'){
+                      $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedEstante->nombre;
+                    }
+                    if($key == 'usuario'){
+                      $selectedUser = User::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedUser->name . ' ' . $selectedUser->lastname;
+                    }
+
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    if($key == 'tipoequipo'){
+                        $key = 'Tipo Equipo';
+                        $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedTipoEquipo->nombre;
+                      }
+                      if($key == 'marca'){
+                        $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedMarca->nombre;
+                      }
+                      if($key == 'estante'){
+                        $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedEstante->nombre;
+                      }
+                      if($key == 'usuario'){
+                        $selectedUser = User::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedUser->name . ' ' . $selectedUser->lastname;
+                      }
+
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('registroabandono.pdf', compact('equiposAbandonados', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('registroabandono.index', compact('equiposAbandonados', 'estantes', 'usuarios', 'marcas', 'tiposequipo', 'estanteData', 'usuarioData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        } elseif($request->submitbtn == null){
+            $equiposAbandonados = $equiposAbandonados->paginate(5);
+            return view('registroabandono.index', compact('equiposAbandonados', 'estantes', 'usuarios', 'marcas', 'tiposequipo', 'estanteData', 'usuarioData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        }
         return view('registroabandono.index', compact('equiposAbandonados','usuarios', 'marcas', 'tiposequipo', 'estantes', 'usuarioData', 'marcaData', 'tipoequipoData', 'estanteData'));
     }
 
@@ -285,7 +508,7 @@ class EquipoController extends Controller
 
     public function getEquiposReparados(){
         $equiposReparados = DB::table('equipos_estados_users_ordenes')
-        ->select('equipos_estados_users_ordenes.id_equipo')
+        ->select('equipos_estados_users_ordenes.id_equipo', 'equipos_estados_users_ordenes.id_orden')
         ->join('ordenesservicio', 'equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
         ->where('equipos_estados_users_ordenes.id_estado', 8)
         ->where('ordenesservicio.id_servicio', 2)
@@ -296,6 +519,7 @@ class EquipoController extends Controller
        
         foreach ($equiposReparados as $equipo) {
             $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca', 'id_user', 'id_tipoequipo', 'modelo')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name', 'tipoequipo:id,nombre')->first();
+            $ultimaOrdenServicioReparacion = OrdenServicio::where('id_equipo', $equipos->id)->where('finalizado', 1)->where('id_servicio', 2)->orderBy('created_at', 'desc')->first();
 
             $estadoEquipo = DB::table('equipos')
             ->select('equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.created_at')
@@ -328,7 +552,9 @@ class EquipoController extends Controller
             $equipos->fechaReparacion = $estadoEquipo->created_at;
                 
             if($estado->id == 8){
-                $collection->push($equipos);
+                if($equipo->id_orden == $ultimaOrdenServicioReparacion->id){
+                    $collection->push($equipos);
+                }
             }  
 
         }
@@ -388,7 +614,7 @@ class EquipoController extends Controller
         $gerente = Auth::user();
 
         foreach ($equipos as $equipo) {
-            $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 1)->where('id_servicio', 2)->orderBy('fechafin', 'desc')
+            $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 1)->where('id_servicio', 2)->orderBy('created_at', 'desc')
             ->first();         
 
             DB::table('equipos_estados_users_ordenes')->insert([
@@ -401,7 +627,7 @@ class EquipoController extends Controller
             
         }
 
-        return redirect()->route('registroabandono.index');
+        return redirect()->route('equipos.equiposAbandonados');
     }
 
 
@@ -486,7 +712,7 @@ class EquipoController extends Controller
 
                     $servicio = Servicio::findOrfail($ordenEquipo->id_servicio)->where('id', $ordenEquipo->id_servicio)->first();
 
-                    $value->fechaIngreso = $fechaIngreso->created_at;
+                    $value->fechaIngreso = Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
                     $value->servicio = $servicio->nombre;
 
                 }
@@ -508,14 +734,12 @@ class EquipoController extends Controller
 
     public function getEquiposTercerosRetirados()
     {
-        
-
         $equipos = Equipo::select('id', 'serie', 'modelo', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
 
         foreach ($equipos as $key => $value) {
-            $ordenEquipo = Equipo::findOrfail($value->id)->orden()->where('finalizado', 0)->first();
-            if($ordenEquipo != null){
-                $ultimoEstado = $ordenEquipo->estados()->first();
+            $ultimaOrdenEquipo = OrdenServicio::where('id_equipo', $value->id)->orderBy('created_at', 'desc')->first();
+            if($ultimaOrdenEquipo != null){
+                $ultimoEstado = $ultimaOrdenEquipo->estados()->first();
 
                 $estadosEquipo = DB::table('equipos')
                 ->select('equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion')
@@ -528,7 +752,7 @@ class EquipoController extends Controller
                 
 
                 if($ultimoEstado->id == 16 || ($anteUltimoEstadoEquipo->id_estado == 16 && $ultimoEstado->id != 16)){
-                    $value->fechaCompromiso = $ordenEquipo->fechacompromiso;
+                    $value->fechaCompromiso = $ultimaOrdenEquipo->fechacompromiso;
 
                     $fechaIngreso = DB::table('equipos')
                     ->select('equipos_estados_users_ordenes.created_at')
@@ -538,7 +762,7 @@ class EquipoController extends Controller
                     ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
                     ->first();
 
-                    $servicio = Servicio::findOrfail($ordenEquipo->id_servicio)->where('id', $ordenEquipo->id_servicio)->first();
+                    $servicio = Servicio::findOrfail($ultimaOrdenEquipo->id_servicio)->where('id', $ultimaOrdenEquipo->id_servicio)->first();
 
                     $value->fechaIngreso = $fechaIngreso->created_at;
                     $value->servicio = $servicio->nombre;
@@ -610,7 +834,7 @@ class EquipoController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-                if($ultimoEstadoOrden->id_estado == 12 || $ultimoEstadoOrden->id_estado == 13){
+                if($ultimoEstadoOrden->id_estado == 19){
                     $esValidaParaServicio = true;
                 }
             }
@@ -630,6 +854,56 @@ class EquipoController extends Controller
         return DataTables()->collection($collection)->toJson();
     }
 
+    public function getEquiposClientePagados($id){
+        $equipos = Equipo::where('id_user', $id)->get();
+
+        $collection = new Collection;
+        
+        if(empty($equipos)){
+            return response()->json([
+                'error' => 'El Cliente no cuenta con Equipos registrados.'
+            ]);
+        }
+        
+        foreach ($equipos as $equipo) {
+            $seccionEstante = $equipo->seccionEstante;
+            $estante = $seccionEstante->estante;
+            $marca = $equipo->marca->nombre;
+            $tipoEquipo = $equipo->tipoEquipo->nombre;
+            
+
+            $equipo->estante = $estante->nombre;
+            $equipo->marca = $marca;
+            $equipo->tipoEquipo = $tipoEquipo;
+            $equipo->seccionEstante = $seccionEstante->nombre;   
+
+            $ultimaOrdenServicioEquipo = OrdenServicio::where('id_equipo', $equipo->id)
+            ->where('finalizado', 1)
+            ->orderBy('created_at', 'desc')->first();
+
+            
+            $esValidaParaServicio = false;
+
+            if(!empty($ultimaOrdenServicioEquipo)){
+                $ultimoEstadoOrden = DB::table('equipos_estados_users_ordenes')
+                ->where('id_orden', $ultimaOrdenServicioEquipo->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+                if($ultimoEstadoOrden->id_estado == 12 || $ultimoEstadoOrden->id_estado == 13){
+                    $esValidaParaServicio = true;
+                }
+            }
+            
+            if(($esValidaParaServicio)){
+                $collection->push($equipo);
+            }
+            
+        }
+
+        return DataTables()->collection($collection)->toJson();
+    }
+
     public function getMisEquiposDiagnostico(){
         $cliente = Auth::user()->id;
         $equipos = Equipo::where('id_user', $cliente)->paginate(5);
@@ -640,6 +914,113 @@ class EquipoController extends Controller
     public function getMisEquiposReparacion(){
 
         return view('equipos.misequiposreparacion');
+    }
+
+    public function getEquiposReparadosNoPagados(){
+        $equiposReparadosNoPagados = DB::table('equipos_estados_users_ordenes')
+        ->select('equipos_estados_users_ordenes.id_equipo', 'equipos_estados_users_ordenes.id_orden')
+        ->join('ordenesservicio', 'equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+        ->where('equipos_estados_users_ordenes.id_estado', 8)
+        ->where('ordenesservicio.id_servicio', 2)
+        ->where('ordenesservicio.finalizado', 1)
+        ->get();
+
+       $collection = new Collection;
+       
+        foreach ($equiposReparadosNoPagados as $equipo) {
+            $equipos = Equipo::find($equipo->id_equipo)->select('id', 'serie','id_marca', 'id_user', 'id_tipoequipo', 'modelo')->where('id', $equipo->id_equipo)->with('marca:id,nombre','user:id,name', 'tipoequipo:id,nombre')->first();
+
+            $ultimaOrdenServicioDiagnostico = OrdenServicio::where('id_equipo', $equipo->id_equipo)
+            ->where('finalizado', 1)
+            ->where('id_servicio', 1)
+            ->orderBy('created_at', 'desc')->first();   
+
+            $ultimaOrdenServicioReparacion = OrdenServicio::where('id_equipo', $equipo->id_equipo)
+            ->where('finalizado', 1)
+            ->where('id_servicio', 2)
+            ->orderBy('created_at', 'desc')->first();
+
+            $estadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+            
+            $estado = Estado::find($estadoEquipo->id_estado)->where('id', $estadoEquipo->id_estado)->first();
+
+            $user = DB::table('equipos')->select('users.name', 'users.lastname')
+            ->join('ordenesservicio','equipos.id', '=', 'ordenesservicio.id_equipo' )
+            ->join('users_ordenes','ordenesservicio.id', '=', 'users_ordenes.id_orden' )
+            ->join('users','users_ordenes.id_user', '=', 'users.id')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->where('equipos.id', $equipo->id_equipo)->first();
+
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->where('equipos.id', $equipo->id_equipo)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenServicioDiagnostico->id)
+            ->first();
+
+            $presupuesto = DB::table('ordenservicios_presupuestos')
+            ->where('id_orden', $ultimaOrdenServicioDiagnostico->id)
+            ->first();
+                
+            if($estado->id == 8){
+                if($ultimaOrdenServicioReparacion->id == $equipo->id_orden){
+                    $equipos->name = $user->name . " " . $user->lastname;
+                    $equipos->estado = $estado->nombre;
+                    $equipos->fechaIngreso =  Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
+                    $equipos->fechaReparacion = $ultimaOrdenServicioReparacion->fechafin;
+                    $equipos->presupuesto = $presupuesto->presupuesto;
+                    $collection->push($equipos);
+                }
+            }  
+
+        }
+
+        return DataTables()->collection($collection)->toJson();
+    }
+
+    public function verRegistrarRetiro(){
+        return view('equipos.retiroequipocliente');
+    }
+
+    public function registrarRetiro(Request $request){
+        $this->validate($request, [
+            'idCliente' => 'required',
+            'idEquipos' => 'required',
+            'descripcion' => 'required',
+        ],
+        [
+            'idCliente.required' => 'Debes elegir un Cliente para ver sus Equipos y elegir cuales retirar.',
+            'descripcion.required' => 'Debes de dar un detalle para el registro del retiro del/los Equipos.',
+            'idEquipos.required' => 'Debes elegir uno o varios Equipos para registrar su retiro.',
+        ]
+        );
+
+        $equipos = $request->get('idEquipos');
+        $cajero = Auth::user();
+
+        foreach ($equipos as $equipo) {
+            $ultimaOrdenServicio = OrdenServicio::where('id_equipo', $equipo)
+            ->where('finalizado', 1)
+            ->orderBy('created_at', 'desc')->first();     
+
+            DB::table('equipos_estados_users_ordenes')->insert([
+                'id_equipo' => $equipo,
+                'id_estado' => 19,
+                'id_user' => $cajero->id,
+                'id_orden' => $ultimaOrdenServicio->id,
+                'descripcion' => $request->get('descripcion'),
+            ]);
+        }
+        
+        return redirect()->route('verRegistrarRetiro');
     }
 
 }

@@ -20,12 +20,12 @@
                 <img alt="image" src="{{ asset('img/logo.png') }}"
                      class="rounded-circle mr-1 thumbnail-rounded user-thumbnail ">
                 <div class="d-sm-none d-lg-inline-block">
-                    Hola, {{\Illuminate\Support\Facades\Auth::user()->name}}</div>
+                    Hola, {{\Illuminate\Support\Facades\Auth::user()->lastname}} {{\Illuminate\Support\Facades\Auth::user()->name}}</div>
             </a>
 
             <div class="dropdown-menu dropdown-menu-right">
-                <div class="dropdown-title">
-                    Bienvenido, {{\Illuminate\Support\Facades\Auth::user()->name}}</div>
+                <div class="dropdown-title" style="background-color:white; color:black !important; border-bottom: 1px #999 solid;">
+                   ¿Qué desesa realizar?</div>
                 <a class="dropdown-item has-icon edit-profile" href="#" data-id="{{ \Auth::id() }}">
                     <i class="fa fa-user"></i>Editar Perfil</a>
                 <a class="dropdown-item has-icon" data-toggle="modal" data-target="#changePasswordModal" href="#" data-id="{{ \Auth::id() }}"><i

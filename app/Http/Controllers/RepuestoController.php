@@ -9,6 +9,7 @@ use App\Models\Marca;
 use App\Models\Estante;
 use App\Models\SeccionesEstante;
 use DB;
+use PDF;
 
 class RepuestoController extends Controller
 {
@@ -19,11 +20,120 @@ class RepuestoController extends Controller
         $this->middleware('permission:borrar-repuestos', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $repuestos = Repuesto::paginate(5);
 
-        $repuesto = Repuesto::first();
+        $estantes = Estante::select('id', 'nombre')->get();
+        $marcas = Marca::select('id','nombre')->get();
+        $tiporepuestos = TipoRepuesto::select('id', 'nombre')->get();
+
+        $estanteData = null;
+        $marcaData = null;
+        $tiporepuestoData = null;
+        $serieData = $request->serie;
+        $modeloData = $request->modelo;
+
+        if($request->marca){
+            $marcaData = Marca::where('id', $request->marca)->select('id', 'nombre')->first();
+        } 
+
+        if($request->tiporepuesto){
+            $tiporepuestoData = TipoRepuesto::where('id', $request->tiporepuesto)->select('id', 'nombre')->first();
+        } 
+
+        if($request->estante){
+            $estanteData = Estante::where('id', $request->estante)->select('id', 'nombre')->first();
+        } 
+
+        if($request->marca ||  $request->tiporepuesto || $request->estante || $request->serie || $request->modelo){
+            $repuestos = Repuesto::join('seccionesestante', 'repuestos.id_seccionestante', 'seccionesestante.id')
+            ->select('repuestos.*')
+            ->when($request->filled('marca'), function ($query) use ($request) {
+                return $query->where('repuestos.id_marca', $request->marca);
+            })->when($request->filled('tiporepuesto'), function ($query) use ($request) {
+                return $query->where('repuestos.id_tiporepuesto', $request->tiporepuesto);
+            })->when($request->filled('estante'), function ($query) use ($request) {
+                return $query->where('seccionesestante.id_estante', $request->estante);
+            })->when($request->filled('serie'), function ($query) use ($request) {
+                return $query->where('repuestos.serie', $request->serie);
+            })->when($request->filled('modelo'), function ($query) use ($request) {
+                return $query->where('repuestos.modelo', $request->modelo);
+            })->paginate(5);
+
+        }else {
+            if($request->submitbtn == 'PDF'){
+                $repuestos = $repuestos = Repuesto::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $repuestos = Repuesto::paginate(5);;
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    
+                    if($key == 'tiporepuesto'){
+                      $key = 'Tipo Repuesto';
+                      $selectedTipoRepuesto = TipoRepuesto::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedTipoRepuesto->nombre;
+                    }
+                    if($key == 'marca'){
+                      $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedMarca->nombre;
+                    }
+                    if($key == 'estante'){
+                      $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedEstante->nombre;
+                    }
+    
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    if($key == 'tiporepuesto'){
+                        $key = 'Tipo Repuesto';
+                        $selectedTipoRepuesto = TipoRepuesto::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedTipoRepuesto->nombre;
+                      }
+                      if($key == 'marca'){
+                        $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedMarca->nombre;
+                      }
+                      if($key == 'estante'){
+                        $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedEstante->nombre;
+                      }
+                     
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('repuestos.pdf', compact('repuestos', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'serieData', 'modeloData'));
+        } elseif($request->submitbtn == null){
+            $repuestos = Repuesto::paginate(5);
+            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'serieData', 'modeloData'));
+        }
+        
+
 
         return view('repuestos.index', compact('repuestos'));
     }

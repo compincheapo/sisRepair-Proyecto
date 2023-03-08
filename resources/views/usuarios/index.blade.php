@@ -51,8 +51,9 @@
                         </select>
                        </div>
                        <div class="form-group col-md-6">
-                            <button class="btn btn-light btn btn-icon icon-left"><i class="fas fa-filter"></i>Filtrar</button>
-                            <a href="{{route('usuarios.pdf')}}" class="btn btn-warning">PDF</a>
+                            
+                            <input type="submit" name="submitbtn" value="Filtrar" class="btn btn-light btn btn-icon icon-left"></input>
+                            <input type="submit" name="submitbtn" value="PDF" class="btn btn-warning btn btn-icon icon-left"></input>
                             <a href="{{ url('/usuarios') }}" class="btn btn-info">Limpiar</a>
                         </div>
                     </div>

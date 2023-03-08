@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use App\Models\Pago;
+use PDF;
+use Carbon\Carbon;
 
 class OrdenServicioController extends Controller
 {
@@ -27,7 +29,7 @@ class OrdenServicioController extends Controller
             $q->whereIn("name", ["Cliente"]);
         })->get();
 
-        $ordenes = OrdenServicio::paginate(5);
+        $ordenes = OrdenServicio::orderBy('created_at', 'desc')->paginate(5);
         $servicios = Servicio::select('id','nombre')->get();
 
         $usuarioData = null;
@@ -36,10 +38,23 @@ class OrdenServicioController extends Controller
         $fechaCompromisoData = $request->fechacompromiso;
         $fechaFinalizacionDesdeData = $request->fechafindesde;
         $fechaFinalizacionHastaData = $request->fechafinhasta;
+
+        if($request->usuario){
+            $usuarioData = User::where('id', $request->usuario)->select('id', 'name', 'lastname')->first();
+            $usuarioData = $usuarioData->id;
+        } 
+
+        if($request->estado && $request->estado == 1){
+            $estadoData = 1;
+        }
+        if($request->estado === '0'){
+            $estadoData = "false";
+        }
         
         if($request->usuario || $request->servicio ||  $request->estado != null || $request->fechacompromiso || $request->fechafindesde || $request->fechafinhasta){
             $ordenes = OrdenServicio::join('equipos', 'ordenesservicio.id_equipo', '=', 'equipos.id')
             ->join('users', 'equipos.id_user', '=', 'users.id')
+            ->orderBy('ordenesservicio.created_at', 'desc')
             ->select('ordenesservicio.*')->when($request->filled('usuario'), function ($query) use ($request) {
                 return $query->where('users.id', $request->usuario);
             })->when($request->filled('servicio'), function ($query) use ($request) {
@@ -53,18 +68,97 @@ class OrdenServicioController extends Controller
             })->when($request->filled('fechafinhasta'), function ($query) use ($request) {
                 return $query->where('ordenesservicio.fechafin', '<=', $request->fechafinhasta);
             })->paginate(5);
+        }else {
+            if($request->submitbtn == 'PDF'){
+                $ordenes = OrdenServicio::orderBy('ordenesservicio.created_at', 'desc')->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $ordenes = OrdenServicio::orderBy('ordenesservicio.created_at', 'desc')->paginate(5);
+            }
         }
-            
-        if($request->usuario){
-            $usuarioData = User::where('id', $request->usuario)->select('id', 'name', 'lastname')->first();
-            $usuarioData = $usuarioData->id;
-        } 
 
-        if($request->estado && $request->estado == 1){
-            $estadoData = 1;
-        }
-        if($request->estado === '0'){
-            $estadoData = "false";
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    if($key == 'usuario'){
+                        $userSelected = User::where('id', $request->usuario)->select('name', 'lastname')->first();
+                        $value = $userSelected->name . ' ' . $userSelected->lastname;
+                    }
+                    
+                    if($key == 'estado'){
+                        if($value === '0'){
+                            $value = 'No Finalizado';
+                        }
+
+                        if($value === '1'){
+                            $value = 'Finalizado';
+                        }
+                    }
+
+                    if($key == 'servicio'){
+                        if($value === '0'){
+                            $value = 'Diagnóstico';
+                        }
+
+                        if($value === '1'){
+                            $value = 'Reparación';
+                        }
+                    }
+
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    if($key == 'usuario'){
+                        $userSelected = User::where('id', $request->usuario)->select('name', 'lastname')->first();
+                        $value = $userSelected->name . ' ' . $userSelected->lastname;
+                    }
+                    
+                    if($key == 'estado'){
+                        if($value === '0'){
+                            $value = 'No Finalizado';
+                        }
+                        
+                        if($value === '1'){
+                            $value = 'Finalizado';
+                        }
+                    }
+
+                    if($key == 'servicio'){
+                        if($value === '1'){
+                            $value = 'Diagnóstico';
+                        }
+
+                        if($value === '2'){
+                            $value = 'Reparación';
+                        }
+                    }
+
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('ordenesservicios.pdf', compact('ordenes', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('ordenesservicios.index', compact('ordenes','usuarios', 'servicios', 'usuarioData', 'servicioData', 'estadoData', 'fechaCompromisoData', 'fechaFinalizacionDesdeData', 'fechaFinalizacionHastaData'));
+        } elseif($request->submitbtn == null){
+            $ordenesservicios = OrdenServicio::orderBy('ordenesservicio.created_at', 'desc')->paginate(5);
+            return view('ordenesservicios.index', compact('ordenes','usuarios', 'servicios', 'usuarioData', 'servicioData', 'estadoData', 'fechaCompromisoData', 'fechaFinalizacionDesdeData', 'fechaFinalizacionHastaData'));
         }
 
         return view('ordenesservicios.index', compact('ordenes','usuarios', 'servicios', 'usuarioData', 'servicioData', 'estadoData', 'fechaCompromisoData', 'fechaFinalizacionDesdeData', 'fechaFinalizacionHastaData'));
@@ -74,6 +168,9 @@ class OrdenServicioController extends Controller
 
         $collection = new Collection;
         $orden = OrdenServicio::findOrfail($id)->where('id', $id)->first();
+        
+        
+
         $equipo = $orden->equipo;
         $equipoSeccionEstante = $equipo->seccionEstante;
         $equipoEstante = $equipoSeccionEstante->estante->nombre;
@@ -150,7 +247,7 @@ class OrdenServicioController extends Controller
             ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
             ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
             ->where('equipos_estados_users_ordenes.id_orden', $orden->id)
-            ->whereIn('equipos_estados_users_ordenes.id_estado', [5, 8])
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [5, 8, 15])
             ->orderBy('equipos_estados_users_ordenes.created_at', 'asc')
             ->get();
         }
@@ -235,7 +332,7 @@ class OrdenServicioController extends Controller
         $ultimoEstadoOrden = DB::table('equipos_estados_users_ordenes')->where('id_orden', $ultimaOrden->id)->orderBy('created_at', 'desc')->first();
 
         foreach ($ordenes as $orden) {
-            if($ultimaOrden->id_servicio == 2 && ($orden->id == $ultimaOrden->id) && $ultimoEstadoOrden->id_estado == 8){
+            if(($ultimaOrden->id_servicio == 2 && ($orden->id == $ultimaOrden->id) && $ultimoEstadoOrden->id_estado == 8) || ($ultimaOrden->id_servicio == 1 && ($orden->id == $ultimaOrden->id) && $ultimoEstadoOrden->id_estado == 18)){
                 $orden->pago = 'Si';
             } else {
                 $orden->pago = 'No';
@@ -261,9 +358,18 @@ class OrdenServicioController extends Controller
         $orden = OrdenServicio::findOrfail($id)->where('id', $id)->first();
         $equipo = $orden->equipo;
         $ultimaOrdenDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
-        $presupuesto = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();
+        
+        if($orden->id_servicio == 1){
+            $presupuesto = null;
+            $precio = DB::table('precios')->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
+        }
 
-        return view('ordenesservicios.pagoorden', compact('orden', 'equipo', 'ultimaOrdenDiagnostico', 'presupuesto'));
+        if($orden->id_servicio == 2){
+            $presupuesto = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();
+            $precio = null;
+        }
+ 
+        return view('ordenesservicios.pagoorden', compact('orden', 'equipo', 'presupuesto', 'precio'));
     }
 
     public function getResultadoPagoOrdenSatisfactoria(Request $request, $id){
@@ -274,7 +380,22 @@ class OrdenServicioController extends Controller
             $equipo = $orden->equipo;
             $ultimaOrdenDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
             
-            $presupuesto = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();       
+            if($orden->id_servicio == 2){
+                $total = DB::table('ordenservicios_presupuestos')->where('id_orden', $ultimaOrdenDiagnostico->id)->first();
+                $total = $total->presupuesto;
+                $estado = 13; 
+
+                DB::table('notificacionpago')
+                ->where('id', $orden->id)
+                ->update(['activo' => 0]);
+                      
+            }
+
+            if($orden->id_servicio == 1){
+                $total = DB::table('precios')->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
+                $total = $total->precio;
+                $estado = 12;
+            }
 
             DB::table('pagomercadopago')->insert([
                 'collection_id' => $request->get('collection_id'),
@@ -291,7 +412,7 @@ class OrdenServicioController extends Controller
             $pago = new Pago;
             $pago->id_tipopago = 2;
             $pago->fechapago = \Carbon\Carbon::now();
-            $pago->precio = $presupuesto->presupuesto;
+            $pago->precio = $total;
             $pago->save();
 
             DB::table('ordenservicios_pagos')->insert([
@@ -301,7 +422,7 @@ class OrdenServicioController extends Controller
 
             DB::table('equipos_estados_users_ordenes')->insert([
                 'id_equipo' => $equipo->id,
-                'id_estado' => 13,
+                'id_estado' => $estado,
                 'id_user' => $cliente->id,
                 'id_orden' => $id,
                 'descripcion' => '',

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Equipo;
+use Carbon\Carbon;
 
 class TipoAccesorio extends Model
 {
@@ -17,9 +18,6 @@ class TipoAccesorio extends Model
         'descripcion',
     ];
 
-    public $timestamps = false;
-
-
     public function equipos(){
         return $this->belongsToMany(
             Equipo::class,
@@ -28,4 +26,15 @@ class TipoAccesorio extends Model
             'id_equipo'
            );
     }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
 }

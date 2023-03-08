@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TipoEquipo;
+use PDF;
 
 class TipoEquipoController extends Controller
 {
-
-
     function __construct(){
         $this->middleware('permission:ver-tiposequipos|crear-tiposequipos|editar-tiposequipos|borrar-tiposequipos', ['only' => ['index']]);
         $this->middleware('permission:crear-tiposequipos', ['only' => ['create', 'store']]); //Métodos asociados al permiso.
@@ -16,11 +15,65 @@ class TipoEquipoController extends Controller
         $this->middleware('permission:borrar-tiposequipos', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $tipoequipos = TipoEquipo::paginate(5);
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
 
-        return view('tipoequipos.index', compact('tipoequipos'));
+        if($request->nombre || $request->descripcion){
+            $tipoequipos = TipoEquipo::where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $tipoequipos = $tipoequipos->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tipoequipos = $tipoequipos->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $tipoequipos = TipoEquipo::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tipoequipos = TipoEquipo::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('tipoequipos.pdf', compact('tipoequipos', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('tipoequipos.index', compact('tipoequipos', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $tipoequipos = TipoEquipo::paginate(5);
+            return view('tipoequipos.index', compact('tipoequipos', 'nombre', 'descripcion'));
+        }
+        
+        return view('tipoequipos.index', compact('tipoequipos','nombre', 'descripcion'));
     }
 
     /**

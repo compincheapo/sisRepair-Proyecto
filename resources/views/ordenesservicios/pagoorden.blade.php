@@ -31,7 +31,12 @@
         $preference->binary_mode = true;
 
         $item->quantity = 1;
-        $item->unit_price = $presupuesto->presupuesto;
+
+        if($presupuesto != null){
+            $item->unit_price = $presupuesto->presupuesto;
+        } else {
+            $item->unit_price = $precio->precio;
+        }
         $preference->items = array($item);
         $preference->save();
     @endphp
@@ -81,8 +86,14 @@
                                     </div>
                                     <div class="col-xs-3 col-sm-3 col-md-3">
                                         <div class="form-group">
-                                            <label for="serie">Presupuesto</label>
-                                            <input type="text" class="form-control" value="{{$presupuesto->presupuesto}}" readonly>
+                                            @if($presupuesto)
+                                                <label for="serie">Presupuesto</label>
+                                                <input type="text" class="form-control" value="{{$presupuesto->presupuesto}}" readonly>
+                                            @else
+                                                <label for="serie">Precio</label>
+                                                <input type="text" class="form-control" value="{{$precio->precio}}" readonly>
+                                            @endif
+                                            
                                         </div>
                                     </div>
                                 </div>    
@@ -126,9 +137,11 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            
-                        <span style="font-weight:bold; font-size:1rem">Total a pagar: {{$presupuesto->presupuesto}}</span>
-                       
+                        @if($presupuesto)  
+                            <span style="font-weight:bold; font-size:1rem">Total a pagar: {{$presupuesto->presupuesto}}</span>
+                        @else
+                            <span style="font-weight:bold; font-size:1rem">Total a pagar: {{$precio->precio}}</span>
+                        @endif
                         <!-- <a class="btn btn-success section-header-breadcrumb"  href="{{route('ordenesequipo', $equipo->id)}}">Realizar Pago  <i class="far fa-credit-card"></i></a> -->
                         <div class="cho-container" style="float:right;"></div>   
                           

@@ -57,18 +57,9 @@
                             </select>
                     </div>
                     
-                      <div class="form-group col-md-6">
-                        <label for="desde">Fecha Desde</label>
-                        <input type="datetime-local" name="desde" value= "{{$desdeData}}" class="form-control">
-                      </div>
-                      <div class="form-group col-md-6">
-                        <label for="hasta">Fecha Hasta</label>
-                        <input type="datetime-local" name="hasta" value="{{$hastaData}}" class="form-control">
-                      </div>
-                     
                        <div class="form-group col-md-12">
-                            <button class="btn btn-light btn btn-icon icon-left"><i class="fas fa-filter"></i>Filtrar</button>
-                            <a href="{{route('usuarios.pdf')}}" class="btn btn-warning">PDF</a>
+                            <input type="submit" name="submitbtn" value="Filtrar" class="btn btn-light btn btn-icon icon-left"></input>
+                            <input type="submit" name="submitbtn" value="PDF" class="btn btn-warning btn btn-icon icon-left"></input>
                             <a href="{{ url('/auditoria') }}" class="btn btn-info">Limpiar</a>
                         </div>
                     </div>
@@ -86,7 +77,6 @@
                                     <th style="color: #fff;">Usuario</th>
                                     <th style="color: #fff;">Modelo</th>
                                     <th style="color: #fff;">Acción</th>
-                                    <th style="color: #fff;">Fecha</th>
                                     <th style="color: #fff;">Detalle</th>
                                     
                                 </thead>
@@ -104,7 +94,6 @@
                                                 <td>Eliminación</td>
                                             @endif
                                             
-                                            <td>{{$auditoria->created_at}}</td>  
                                             <td style="text-align: center"> <a data-collapse="#{{$auditoria->id}}" class="btn btn-icon btn-info" href="#"><i class="fas fa-plus"></i></a></td>  
                                             
                                         </tr>

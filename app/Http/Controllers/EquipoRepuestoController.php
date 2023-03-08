@@ -12,6 +12,7 @@ use App\Models\TipoAccesorio;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\SeccionesEstante;
+use PDF;
 
 
 class EquipoRepuestoController extends Controller
@@ -23,19 +24,127 @@ class EquipoRepuestoController extends Controller
         $this->middleware('permission:borrar-equipos', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $equiposRepuestoCollection = DB::table('equipos')
         ->select('equipos.id')
         ->join('equipos_estados_users_ordenes', 'equipos_estados_users_ordenes.id_equipo', 'equipos.id')
-        ->where('equipos_estados_users_ordenes.id_estado', 1)
+        ->where('equipos_estados_users_ordenes.id_estado', 14)
         ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
         ->pluck('equipos.id');
 
-        $equiporepuestos = Equipo::whereIn('id', $equiposRepuestoCollection)->paginate(5);
+        $equiporepuestos = Equipo::whereIn('equipos.id', $equiposRepuestoCollection);
+
+        $estantes = Estante::select('id', 'nombre')->get();
+        $marcas = Marca::select('id','nombre')->get();
+        $tiposequipo = TipoEquipo::select('id', 'nombre')->get();
+
+        $estanteData = null;
+        $marcaData = null;
+        $tipoequipoData = null;
+        $serieData = $request->serie;
+        $modeloData = $request->modelo;
+
+        if($request->marca){
+            $marcaData = Marca::where('id', $request->marca)->select('id', 'nombre')->first();
+        } 
+
+        if($request->tipoequipo){
+            $tipoequipoData = TipoEquipo::where('id', $request->tipoequipo)->select('id', 'nombre')->first();
+        } 
+
+        if($request->estante){
+            $estanteData = Estante::where('id', $request->estante)->select('id', 'nombre')->first();
+        } 
+
+        if($request->marca ||  $request->tipoequipo || $request->estante || $request->serie || $request->modelo){
+            $equiporepuestos = $equiporepuestos->join('seccionesestante', 'equipos.id_seccionestante', 'seccionesestante.id')
+            ->select('equipos.*')
+            ->when($request->filled('marca'), function ($query) use ($request) {
+                return $query->where('equipos.id_marca', $request->marca);
+            })->when($request->filled('tipoequipo'), function ($query) use ($request) {
+                return $query->where('equipos.id_tipoequipo', $request->tipoequipo);
+            })->when($request->filled('estante'), function ($query) use ($request) {
+                return $query->where('seccionesestante.id_estante', $request->estante);
+            })->when($request->filled('serie'), function ($query) use ($request) {
+                return $query->where('equipos.serie', $request->serie);
+            })->when($request->filled('modelo'), function ($query) use ($request) {
+                return $query->where('equipos.modelo', $request->modelo);
+            })->paginate(5);
+
+        }else {
+            if($request->submitbtn == 'PDF'){
+                $equiporepuestos = $equiporepuestos->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $equiporepuestos = $equiporepuestos->paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    
+                    if($key == 'tipoequipo'){
+                      $key = 'Tipo Equipo';
+                      $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedTipoEquipo->nombre;
+                    }
+                    if($key == 'marca'){
+                      $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedMarca->nombre;
+                    }
+                    if($key == 'estante'){
+                      $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                      $value = $selectedEstante->nombre;
+                    }
+    
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    if($key == 'tipoequipo'){
+                        $key = 'Tipo Equipo';
+                        $selectedTipoEquipo = TipoEquipo::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedTipoEquipo->nombre;
+                      }
+                      if($key == 'marca'){
+                        $selectedMarca = Marca::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedMarca->nombre;
+                      }
+                      if($key == 'estante'){
+                        $selectedEstante = Estante::findOrfail($value)->where('id', $value)->first();
+                        $value = $selectedEstante->nombre;
+                      }
+                     
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('equiporepuestos.pdf', compact('equiporepuestos', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('equiporepuestos.index', compact('equiporepuestos', 'estantes', 'marcas', 'tiposequipo', 'estanteData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        } elseif($request->submitbtn == null){
+            $equiporepuestos = $equiporepuestos->paginate(5);
+            return view('equiporepuestos.index', compact('equiporepuestos', 'estantes', 'marcas', 'tiposequipo', 'estanteData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
+        }
         
-        
-        return view('equiporepuestos.index', compact('equiporepuestos'));
+        return view('equiporepuestos.index', compact('equipos', 'estantes', 'marcas', 'tiposequipo', 'estanteData', 'marcaData', 'tipoequipoData', 'serieData', 'modeloData'));
     }
 
     public function create()

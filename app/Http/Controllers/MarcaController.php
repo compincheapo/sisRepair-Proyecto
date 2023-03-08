@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use App\Models\Marca;
+use PDF;
 
 class MarcaController extends Controller
 {
@@ -16,12 +17,65 @@ class MarcaController extends Controller
         $this->middleware('permission:borrar-marcas', ['only' => ['destroy']]); 
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $marcas = Marca::paginate(5);
-        //dd($servicios);
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
 
-        return view('marcas.index', compact('marcas'));
+        if($request->nombre || $request->descripcion){
+            $marcas = Marca::where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $marcas = $marcas->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $marcas = $marcas->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $marcas = Marca::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $marcas = Marca::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('marcas.pdf', compact('marcas', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('marcas.index', compact('marcas', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $marcas = Marca::paginate(5);
+            return view('marcas.index', compact('marcas', 'nombre', 'descripcion'));
+        }
+        
+        return view('marcas.index', compact('roles','nombre', 'descripcion'));
     }
 
     /**

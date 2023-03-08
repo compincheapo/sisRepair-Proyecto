@@ -49,7 +49,7 @@
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Detalle y Fecha Prometida</span>
+                                <span class="bs-stepper-label">Detalle y Fecha Estimada</span>
                                 </button>
                             </div>
                             <div class="line"></div>
@@ -117,8 +117,8 @@
                             <div class="row">
                                 <div class="col-xs-6 col-sm-6 col-md-6">
                                             <div class="form-group"> 
-                                                <label for="fecha">Fecha Prometida</label>
-                                            {!!Form::date('fecha', null, ['class' => 'form-control', 'id'=>'fecha'] )!!} 
+                                                <label for="fecha">Fecha Estimada</label>
+                                            {!!Form::date('fecha', null, ['class' => 'form-control', 'id'=>'fecha', 'lang' => 'es-ES', 'placeholder' => "dd-mm-yyyy"] )!!} 
                                             </div>
                                 </div>
                                 <div class="col-xs-6 col-sm-6 col-md-6">
@@ -224,13 +224,46 @@
                 animation: true
             })
 
-            stepper1Node.addEventListener('show.bs-stepper', function (event) {
-                console.warn('show.bs-stepper', event)
-            })
-            stepper1Node.addEventListener('shown.bs-stepper', function (event) {
-                console.warn('shown.bs-stepper', event)
-            })
+            function formatearFecha(fecha){
+                var createdDate = new Date(fecha);
+                var hours = createdDate.getHours();
+                var minutes = createdDate.getMinutes();
+                var ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+
+                var mes = '';
+                if(parseInt((createdDate.getMonth()+1)) <= 9){
+                    mes = '0' + (createdDate.getMonth()+1)
+                } else {
+                    mes = (createdDate.getMonth()+1);
+                }
+
+                return createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+            }
             
+
+            function formatearFechaDiasRecomedados(fechaInicio, fechaFin){
+                var splitInicio = fechaInicio.split(" ");
+                var splitInicioDate = splitInicio[0].split("-");
+                splitInicioDateDia = splitInicioDate[0];
+                splitInicioDate[0] = splitInicioDate[2];
+                splitInicioDate[2] = splitInicioDateDia;
+
+                var fechaInicioJoined = splitInicioDate.join("-");
+
+                var fechaFinSplitting = fechaFin.split("-");
+                fechaFinSplittingDia = fechaFinSplitting[0];
+                fechaFinSplitting[0] = fechaFinSplitting[2];
+                fechaFinSplitting[2] = fechaFinSplittingDia;
+
+                var fechaFinJoined = fechaFinSplitting.join("-");
+
+                return [fechaInicioJoined, fechaFinJoined];
+            }
+
             $(document).ready(function() {
                 
                 var tablita = $('#example').DataTable( {
@@ -434,10 +467,18 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaServicio.appendChild(contenidoServicio);
 
-                    var fechaInicio = new Date(table.rows({selected: true}).data()[index].fechaIngreso).getTime();
-                    var fechaFin    = new Date(table.rows({selected: true}).data()[index].fechaCompromiso).getTime();
+                    var fechaInicio = table.rows({selected: true}).data()[index].fechaIngreso;
+                    var fechaFin = table.rows({selected: true}).data()[index].fechaCompromiso;
 
-                    var diff = fechaFin - fechaInicio;
+
+                    var fechasFormateadas = formatearFechaDiasRecomedados(fechaInicio, fechaFin);
+
+                    
+                    var fechaInicioDate = new Date(fechasFormateadas[0]).getTime();
+
+                    var fechaFinDate    = new Date(fechasFormateadas[1]).getTime();
+
+                    var diff = fechaFinDate - fechaInicioDate;
                     diff = Math.ceil(diff/(1000*60*60*24));
 
                     if(diff == 0){
@@ -613,7 +654,6 @@
 
                 divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
-
                 //-------------------- RECORRIDO COMENTARIOS ---------------------------
 
                 for (let i = 0; i < response.data[0].comentarios.length; i++) {
@@ -649,28 +689,30 @@
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+                fecha = formatearFecha(response.data[0].comentarios[i].created_at);
+
                 //Control de Tipo de Comentario o Detalle
                 if(response.data[0].comentarios[i].id_estado == 1){
-                    buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
 
                 if(response.data[0].comentarios[i].id_estado == 9){
-                    buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
 
                 if(response.data[0].comentarios[i].id_estado == 4){
-                    buttonH2.innerHTML = 'Detalle Diagnóstico Finalizado ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle Diagnóstico Finalizado ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
 
                 if(response.data[0].comentarios[i].id_estado == 5){
-                    buttonH2.innerHTML = 'Detalle Inicio Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle Inicio Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
 
                 if(response.data[0].comentarios[i].id_estado == 10){
-                    buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
                 if(response.data[0].comentarios[i].id_estado == 16){
-                    buttonH2.innerHTML = 'Detalle Retiro Equipo por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    buttonH2.innerHTML = 'Detalle Retiro Equipo por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                 }
 
                 headerH2.appendChild(buttonH2);
@@ -751,7 +793,9 @@
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios.created_at + '<p>';
+                fecha = formatearFecha(response.data[0].comentarios.created_at);
+
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
 
                 headerH2.appendChild(buttonH2);
 

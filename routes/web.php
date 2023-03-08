@@ -17,8 +17,12 @@ use App\Http\Controllers\TipoRepuestoController;
 use App\Http\Controllers\RepuestoController;
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\EquipoRepuestoController;
+use App\Http\Controllers\GraficoController;
+use App\Http\Controllers\InformacionGeneralController;
 use App\Http\Controllers\OrdenServicioController;
 use App\Http\Controllers\PagoDiagnosticoController;
+use App\Http\Controllers\PagoReparacionController;
+use App\Http\Controllers\WhatsappController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,10 +46,9 @@ Route::group(['middleware' => ['auth']], function(){
     Route::resource('roles', RolController::class);
     Route::resource('usuarios', UsuarioController::class);
     Route::resource('marcas', MarcaController::class);
-    Route::get('downloadpdf', [UsuarioController::class, 'pdfUsuarios'])->name('usuarios.pdf');
-
 
 });
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
@@ -116,6 +119,11 @@ Route::resource('/repuestos', RepuestoController::class)->middleware('auth');
 
 Route::resource('/equiporepuestos', EquipoRepuestoController::class)->middleware('auth');
 
+Route::get('/equipospagados/cliente/{id}', [EquipoController::class, 'getEquiposClientePagados'])->name('getEquiposClientePagados')->middleware('auth');
+
+Route::get('/registroRetiro', [EquipoController::class, 'verRegistrarRetiro'])->name('verRegistrarRetiro')->middleware('auth');
+
+Route::post('/registrarRetiro', [EquipoController::class, 'registrarRetiro'])->name('equipos.registrarRetiro')->middleware('auth');
 
 // ------------------ Ordenes de Servicio ------------------ 
 
@@ -249,7 +257,7 @@ Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria
 
 Route::resource('/pagodiagnostico', PagoDiagnosticoController::class)->except(['update', 'edit', 'destroy', 'show'])->middleware('auth');
 
-Route::get('/equiposPresupuestados', [EquipoController::class, 'getEquiposPresupuestados'])->name('equiposPresupuestados')->middleware('auth');
+Route::get('/equiposPresupuestosRechazados', [EquipoController::class, 'getEquiposPresupuestosRechazados'])->name('equiposPresupuestosRechazados')->middleware('auth');
 
 Route::post('/pagos/registrarpagodiagnostico', [PagoDiagnosticoController::class, 'registrarPagoDiagnostico'])->name('registrarPagoDiagnostico')->middleware('auth');
 
@@ -257,4 +265,42 @@ Route::get('/pagos/comprobarpreciodiagnostico', [PagoDiagnosticoController::clas
 
 Route::get('/pagos/diagnostico/equipo/detalle/{id}', [UsuarioController::class, 'getDetalleEquipoDiagnosticoPago'])->name('getDetalleEquipoDiagnosticoPago')->middleware('auth');
 
+Route::resource('/pagoreparacion', PagoReparacionController::class)->except(['update', 'edit', 'destroy', 'show'])->middleware('auth');
+
+Route::get('/equiposReparadosNoPagados', [EquipoController::class, 'getEquiposReparadosNoPagados'])->name('equiposReparadosNoPagados')->middleware('auth');
+
+Route::post('/pagos/registrarpagoreparacion', [PagoReparacionController::class, 'registrarPagoReparacion'])->name('registrarPagoReparacion')->middleware('auth');
+
 Route::get('/pagos/reparacion/equipo/detalle/{id}', [UsuarioController::class, 'getDetalleEquipoReparacionPago'])->name('getDetalleEquipoReparacionPago')->middleware('auth');
+
+// Información general
+Route::resource('/informaciongeneral', InformacionGeneralController::class)->except(['update','edit', 'destroy', 'show', 'create'])->middleware('auth');
+
+Route::post('/informaciongeneral/actualizar', [InformacionGeneralController::class, 'actualizarInformacionGeneral'])->name('actualizarInformacionGeneral')->middleware('auth');
+
+
+//Comprobante 
+Route::get('/comprobante/diagnostico/{id}', [PagoDiagnosticoController::class, 'getComprobanteDiagnostico'])->name('comprobanteDiagnostico')->middleware('auth');
+
+Route::get('/comprobante/reparacion/{id}', [PagoReparacionController::class, 'getComprobanteReparacion'])->name('comprobanteReparacion')->middleware('auth');
+
+//Remito
+Route::get('/recibo/diagnostico/{id}', [PagoDiagnosticoController::class, 'getReciboDiagnostico'])->name('reciboDiagnostico')->middleware('auth');
+Route::get('/recibo/reparacion/{id}', [PagoReparacionController::class, 'getReciboReparacion'])->name('reciboReparacion')->middleware('auth');
+
+
+//Usuario
+Route::post('/usuario/cambiarpass', [UsuarioController::class, 'cambiarPassword'])->name('cambiarPassword')->middleware('auth');
+
+//Whatsapp 
+
+Route::get('/whatsapp/envio/bienvenida', [WhatsappController::class, 'bienvenida'])->name('whatsapp.bienvenida')->middleware('auth');
+Route::get('/whatsapp/envio/personalizado', [WhatsappController::class, 'mensajePersonalizado'])->name('whatsapp.mensajePersonalizado')->middleware('auth');
+Route::get('/whatsapp/getIdMediaPDF', [WhatsappController::class, 'getIdMediaPDF'])->name('whatsapp.getIdMediaPDF')->middleware('auth');
+Route::get('/whatsapp/envioPDF', [WhatsappController::class, 'envioPDF'])->name('whatsapp.envioPDF')->middleware('auth');
+
+
+//Graficos
+Route::get('/graficos/barra', [GraficoController::class, 'graficaBarras'])->name('estadisticas.graficaBarras')->middleware('auth');
+Route::get('/graficos/torta', [GraficoController::class, 'graficaTorta'])->name('estadisticas.graficaTorta')->middleware('auth');
+Route::get('/graficos/linea', [GraficoController::class, 'graficaLinea'])->name('estadisticas.graficaLinea')->middleware('auth');

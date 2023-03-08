@@ -128,7 +128,7 @@
 
                             <p class="text-center">¿Está seguro de registrar el ingreso de estos Equipos?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
+                            <input type="submit" value="Registrar Ingreso" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
                    
@@ -413,7 +413,7 @@
                     var celdaAccionDetalle = newRowDetalle.insertCell();
                     celdaAccionDetalle.setAttribute("style", "padding-top:5px");
 
-                    if(estado == 16){
+                    if(estado == 4 || estado == 8){
                         var label = document.createElement("label");
 
                         var radio = document.createElement("input");

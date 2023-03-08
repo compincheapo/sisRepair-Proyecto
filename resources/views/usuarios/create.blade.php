@@ -51,6 +51,12 @@
                                     </div>
                                     <div class="col-xs-12 col-sm-12 col-md-12">
                                         <div class="form-group">
+                                            <label for="numero">Número</label>
+                                            {!! Form::text('numero', null, array('class' => 'form-control'))!!}
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12">
+                                        <div class="form-group">
                                             <label for="password">Contraseña</label>
                                             {!! Form::password('password', array('class' => 'form-control'))!!}
                                         </div>

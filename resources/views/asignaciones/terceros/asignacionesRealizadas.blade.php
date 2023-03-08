@@ -42,6 +42,7 @@
                                     <th>Marca</th>
                                     <th>Cliente</th>
                                     <th>Tercero</th>
+                                    <th>Servicio</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -160,6 +161,7 @@ $(document).ready(function() {
             {data: 'marca.nombre'},
             {data: 'user.name'},
             {data: 'name'},
+            {data: 'servicio'},
             {data: 'estado'},
             {data: 'action', name: 'action', orderable: false, searchable:false}
     
@@ -233,18 +235,17 @@ $(document).ready(function() {
                 
 
                 $('#id').val(response.data[0].id);
-                $('#fechaingreso').val(response.data[0].fechaIngreso.created_at);
+                $('#fechaingreso').val(response.data[0].fechaIngreso);
                 $('#fechacompromiso').val(response.data[0].fechacompromiso);
                 
                 if(response.data[0].presupuesto){
                     $('#presupuestoRealizado').val(response.data[0].presupuesto);
                     $('#divPresupuesto').removeClass('d-none');
-                    if(response.data[0].servicio == 1){
+                    if(response.data[0].servicio == 1 && response.data[0].estado == 10){
                         $('#btnAceptarPre').removeClass('d-none');
                     }
                 }
-
-                if(response.data[0].estado != 2){
+                if(response.data[0].estado != 2 && response.data[0].estado != 6){
                     $('#btnRegistrarRet').addClass("d-none");
                 } else {
                     $('#btnRegistrarRet').removeClass("d-none");
@@ -381,6 +382,9 @@ $(document).ready(function() {
 
                     if(response.data[0].comentarios[i].id_estado == 16){
                         buttonH2.innerHTML = 'Detalle Retiro por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                    }
+                    if(response.data[0].comentarios[i].id_estado == 8){
+                        buttonH2.innerHTML = 'Detalle Reparación Finalizada ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
                     }
 
                     headerH2.appendChild(buttonH2);

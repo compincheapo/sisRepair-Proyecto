@@ -74,14 +74,14 @@
          <div class="row" id="divRowBro">
              <div class="col-xs-6 col-sm-6 col-md-6">
               <div class="form-group mb-3">
-                 <label for="fechacompromiso">Fecha Compromiso</label>
+                 <label for="fechacompromiso">Fecha Estimada</label>
                  <input type="text" name="fechacompromiso" id="fechacompromiso" class="form-control" disabled>  
                  <span id="emailError" class="text-danger error-message d-none"></span>
               </div>
              </div>
              <div class="col-xs-6 col-sm-6 col-md-6">
              <div class="form-group mb-3">
-                <label for="fechaingreso">Fecha Ingreso</label>
+                <label for="fechaingreso">Fecha Asignación</label>
                 <input type="text" name="fechaingreso" id="fechaingreso" class="form-control" disabled>
                 <span id="nameError" class="text-danger error-message d-none"></span>
              </div>
@@ -138,7 +138,7 @@
                           <div id="test-l-2" class="content">
                               <div class="col-xs-12 col-sm-12 col-md-12">
                                     <div class="form-group"> 
-                                        <label for="descripcion">Detalles del Equipo</label>
+                                        <label for="descripcion">Detalles respecto al Servicio de Reparación realizado</label>
                                         <div class="form-control" style="visibility: hidden; padding:0; height:20px">
                                       </div>
                                         {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
@@ -170,9 +170,15 @@
                     </table>
 
 
-                            <p class="text-center">¿Está seguro de asignar estos Repuestos?</p>
+                            <p class="text-center" id="mensaje-finalizacion">¿Está seguro de asignar estos Repuestos al Servicio de Reparación realizado?</p>
+                            <div class="alert alert-warning" id="alerta-peligro">
+                              <div class="alert-title">
+                                  Atención, ústed no ha marcado respuestos.
+                              </div>
+                              ¿Está seguro de que no ha utilizado repuestos para la reparación? Si lo está, continue.
+                            </div>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar" onclick="event.preventDefault()">
+                            <input type="submit" value="Finalizar" class="btn btn-primary mt-2" id="enviar" onclick="event.preventDefault()">
                         </div>
                     </div>
                 </div>
@@ -285,7 +291,7 @@ $(document).ready(function() {
       
 
       $('#id').val(response.data[0].id);
-      $('#fechaingreso').val(response.data[0].fechaIngreso.created_at);
+      $('#fechaingreso').val(response.data[0].fechaIngreso);
       $('#fechacompromiso').val(response.data[0].fechacompromiso);
       
 
@@ -396,25 +402,43 @@ $(document).ready(function() {
         buttonH2.setAttribute('aria-controls', 'collapseOne');
         buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+        var createdDate = new Date(response.data[0].comentarios[i].created_at);
+        var hours = createdDate.getHours();
+        var minutes = createdDate.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+
+        var mes = '';
+        if(parseInt((createdDate.getMonth()+1)) <= 9){
+            mes = '0' + (createdDate.getMonth()+1)
+        } else {
+            mes = (createdDate.getMonth()+1);
+        }
+
+        var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
         //Control de Tipo de Comentario o Detalle
         if(response.data[0].comentarios[i].id_estado == 1){
-          buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         if(response.data[0].comentarios[i].id_estado == 9){
-          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         if(response.data[0].comentarios[i].id_estado == 4){
-          buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         if(response.data[0].comentarios[i].id_estado == 5){
-          buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         if(response.data[0].comentarios[i].id_estado == 10){
-          buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+          buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         headerH2.appendChild(buttonH2);
@@ -906,6 +930,9 @@ $('body').on('click', '#enviar', function (){
 
     $('#equipos').on('click', function(e){
     var tbodySelectedEquipments = document.getElementById('selected-equipment').getElementsByTagName('tbody')[0];
+    var tablaSeleccionados = document.getElementById('selected-equipment')
+    var alertaPeligro = document.getElementById('alerta-peligro');
+    var parrafoFinalizacion = document.getElementById('mensaje-finalizacion');
     var rows_selected = table.column(0).checkboxes.selected().count();
     var limitStock = false;
     var whiteSpace = false;
@@ -992,99 +1019,109 @@ $('body').on('click', '#enviar', function (){
     });
 
     
-    if(!rows_selected){
-          Swal.fire('Debe de elegir al menos un Repuesto.')
-      } else if(rows_selected && !limitStock && !whiteSpace && !zeroNumber && !eCaracter && !negativeNumber){
+     if(!limitStock && !whiteSpace && !zeroNumber && !eCaracter && !negativeNumber){
           stepper1.next();
       }
   
   
+      if(rows_selected == 0){
+        alertaPeligro.style.display = null;
+        tablaSeleccionados.setAttribute('style', 'display:none;');
+        parrafoFinalizacion.setAttribute('style', 'display:none;');
+      } 
+
+
+      if(rows_selected > 0){
+            alertaPeligro.setAttribute('style', 'display:none;');
+            tablaSeleccionados.style.display = null;
+            parrafoFinalizacion.style.display = null;
       
-      tbodySelectedEquipments.innerHTML = "";
+             tbodySelectedEquipments.innerHTML = "";
   
-      table.rows( {selected: true} ).every( function () {
-          //Con node podemos interactuar con el input.  
-          rowNode = this.node();
-  
-          //Con data podemos interactuar de forma mas sencilla con datos de tabla como lo dado abajo en el for.
-          rowData = this.data();
-          console.log(rowData);
-  
-          console.log(rowData.id);
-          //console.log(table.rows({selected: true}).data()[index]);
-          //Insertando Fila
-          var newRow = tbodySelectedEquipments.insertRow();
-  
-          
-          //Celda Tipo Repuesto
-          var celdaTipoRepuesto = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoTipoRepuesto = document.createTextNode(rowData.tiporepuesto.nombre);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaTipoRepuesto.appendChild(contenidoTipoRepuesto);
-  
-          //Celda Marca
-          var celdaMarca = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoMarca = document.createTextNode(rowData.marca.nombre);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaMarca.appendChild(contenidoMarca);
-  
-            //Celda Modelo
-          var celdaModelo = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoModelo = document.createTextNode(rowData.modelo);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaModelo.appendChild(contenidoModelo);
-  
-          //Celda Serie
-          var celdaSerie = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoSerie = document.createTextNode(rowData.serie);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaSerie.appendChild(contenidoSerie);
-  
-          //Celda Estante
-          var celdaEstante = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoEstante = document.createTextNode(rowData.seccion_estante.estante.nombre);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaEstante.appendChild(contenidoEstante);
-  
-          //Celda Seccion Estante
-          var celdaSeccionEstante = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoSeccionEstante = document.createTextNode(rowData.seccion_estante.nombre);
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaSeccionEstante.appendChild(contenidoSeccionEstante);
-  
-          //Celda Cantidad
-          var celdaCantidad = newRow.insertCell();
-          //Insertando Contenido tipo texto.
-          var contenidoCantidad = document.createTextNode($(rowNode).find("input[type='number']").val());
-          //Insertando sobre la celda el contenido tipo texto.
-          celdaCantidad.appendChild(contenidoCantidad);
-  
-  
-          global.push(rowData.id);
-          cant.push($(rowNode).find("input[type='number']").val());
-  
-          //Celda Btn
-          var celdaBtn = newRow.insertCell();
-          celdaBtn.setAttribute('style', 'text-align:center;');
-          var btn = document.createElement("button");
-          btn.innerHTML = "X";
-          btn.setAttribute('class', 'btn btn-danger');
-          btn.setAttribute('id', rowData.id);
-          
-          btn.onclick = function (e) {    
-              uncheckEquipment(e);
-          };
-  
-          celdaBtn.appendChild(btn);
-      
+             table.rows( {selected: true} ).every( function () {
+            //Con node podemos interactuar con el input.  
+            rowNode = this.node();
     
-    });
+            //Con data podemos interactuar de forma mas sencilla con datos de tabla como lo dado abajo en el for.
+            rowData = this.data();
+            console.log(rowData);
+    
+            console.log(rowData.id);
+            //console.log(table.rows({selected: true}).data()[index]);
+            //Insertando Fila
+            var newRow = tbodySelectedEquipments.insertRow();
+    
+            
+            //Celda Tipo Repuesto
+            var celdaTipoRepuesto = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoTipoRepuesto = document.createTextNode(rowData.tiporepuesto.nombre);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaTipoRepuesto.appendChild(contenidoTipoRepuesto);
+    
+            //Celda Marca
+            var celdaMarca = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoMarca = document.createTextNode(rowData.marca.nombre);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaMarca.appendChild(contenidoMarca);
+    
+              //Celda Modelo
+            var celdaModelo = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoModelo = document.createTextNode(rowData.modelo);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaModelo.appendChild(contenidoModelo);
+    
+            //Celda Serie
+            var celdaSerie = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoSerie = document.createTextNode(rowData.serie);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaSerie.appendChild(contenidoSerie);
+    
+            //Celda Estante
+            var celdaEstante = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoEstante = document.createTextNode(rowData.seccion_estante.estante.nombre);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaEstante.appendChild(contenidoEstante);
+    
+            //Celda Seccion Estante
+            var celdaSeccionEstante = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoSeccionEstante = document.createTextNode(rowData.seccion_estante.nombre);
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaSeccionEstante.appendChild(contenidoSeccionEstante);
+    
+            //Celda Cantidad
+            var celdaCantidad = newRow.insertCell();
+            //Insertando Contenido tipo texto.
+            var contenidoCantidad = document.createTextNode($(rowNode).find("input[type='number']").val());
+            //Insertando sobre la celda el contenido tipo texto.
+            celdaCantidad.appendChild(contenidoCantidad);
+    
+    
+            global.push(rowData.id);
+            cant.push($(rowNode).find("input[type='number']").val());
+    
+            //Celda Btn
+            var celdaBtn = newRow.insertCell();
+            celdaBtn.setAttribute('style', 'text-align:center;');
+            var btn = document.createElement("button");
+            btn.innerHTML = "X";
+            btn.setAttribute('class', 'btn btn-danger');
+            btn.setAttribute('id', rowData.id);
+            
+            btn.onclick = function (e) {    
+                uncheckEquipment(e);
+            };
+    
+            celdaBtn.appendChild(btn);
+        
+      });
+
+      }
 
     $('#tecnicos').on('click', function(e){
             stepper1.next();

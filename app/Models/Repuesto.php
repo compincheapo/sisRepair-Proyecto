@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\TipoRepuesto;
 use App\Models\Marca;
 use App\Models\SeccionesEstante;
+use Carbon\Carbon;
 
 class Repuesto extends Model
 {
@@ -23,8 +24,6 @@ class Repuesto extends Model
 
     protected $guarded = [];
 
-    public $timestamps = false;
-
     public function seccionEstante(){
         return $this->belongsTo(SeccionesEstante::class, 'id_seccionestante', 'id');
     }
@@ -35,5 +34,15 @@ class Repuesto extends Model
 
     public function tiporepuesto(){
         return $this->belongsTo(TipoRepuesto::class, 'id_tiporepuesto', 'id');
+    }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TipoRepuesto;
+use PDF;
 
 class TipoRepuestoController extends Controller
 {
@@ -19,11 +20,65 @@ class TipoRepuestoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $tiporepuestos = TipoRepuesto::paginate(5);
+        $nombre = $request->nombre;
+        $descripcion = $request->descripcion;
 
-        return view('tiporepuestos.index', compact('tiporepuestos'));
+        if($request->nombre || $request->descripcion){
+            $tiporepuestos = TipoRepuesto::where('nombre', 'like', '%'.$request->nombre .'%')
+            ->where('descripcion', 'like', '%'.$request->descripcion .'%');
+
+            if($request->submitbtn == 'PDF'){
+                $tiporepuestos = $tiporepuestos->get();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tiporepuestos = $tiporepuestos->paginate(5);
+            }
+        } else {
+            if($request->submitbtn == 'PDF'){
+                $tiporepuestos = TipoRepuesto::all();
+            } elseif($request->submitbtn == 'Filtrar'){
+                $tiporepuestos = TipoRepuesto::paginate(5);
+            }
+        }
+
+        if($request->submitbtn == 'PDF'){
+            $filtros = [];
+            foreach ($request->all() as $key => $value) {
+                if($value != null && $key != 'submitbtn'){
+                    $filtros[$key] = $value;
+                }
+            }
+
+           $filtrado = 'Todos.';
+           if(count($filtros) === 1){
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $key . ': ' . $value. '.'; 
+                }
+           }
+
+           if(count($filtros) > 1){
+                $filtrado = '';
+                foreach($filtros as $key => $value) {
+                    $key = ucfirst($key);
+                    $filtrado = $filtrado . $key . ':' . $value . ', ';
+                }
+                $filtrado = rtrim($filtrado, ", ");
+                $filtrado = $filtrado . '.';
+           }
+                       
+            $pdf = PDF::loadView('tiporepuestos.pdf', compact('tiporepuestos', 'filtrado'));
+            return $pdf->stream();
+        } elseif($request->submitbtn == 'Filtrar'){
+            return view('tiporepuestos.index', compact('tiporepuestos', 'nombre', 'descripcion'));
+        } elseif($request->submitbtn == null){
+            $tiporepuestos = TipoRepuesto::paginate(5);
+            return view('tiporepuestos.index', compact('tiporepuestos', 'nombre', 'descripcion'));
+        }
+        
+        return view('tiporepuestos.index', compact('tiporepuestos','nombre', 'descripcion'));
     }
 
     /**

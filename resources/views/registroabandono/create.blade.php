@@ -80,7 +80,7 @@
                         <div id="test-l-2" class="content">
                             <div class="col-xs-12 col-sm-12 col-md-12">
                                 <div class="form-group"> 
-                                    <label for="descripcion">Detalles del Equipo</label>
+                                    <label for="descripcion">Detalle en relación al Abandono del/los Equipo/s</label>
                                     <div class="form-control" style="visibility: hidden; padding:0; height:20px">
                                     </div>
                                     {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
@@ -117,15 +117,6 @@
                             <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
-                    <!-- <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a> -->
-                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
-
-                    <p><button>Submit</button></p>
-
-                    <p><b>Selected rows data:</b></p>
-                    <pre id="example-console-rows"></pre>
-
-                    <p><b>Form data as submitted to the server:</b></p> -->
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>

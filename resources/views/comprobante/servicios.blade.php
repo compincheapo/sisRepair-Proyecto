@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>Reporte Usuarios</title>
+	<title>Comprobante Pago</title>
 
   <style>
     .page_break {
@@ -56,11 +56,11 @@
         <table style="width:100%" >
                         <tr>
                             <td style="width: 80%; vertical-align:top;font-size: 10pt">
-                            <strong style="font-size: 12pt">SIC Servicios Informáticos </strong><br>
-                            Apóstoles Misiones. <br>
-                            Miguel Zubrzycki 221<br>
-                            Celular: (3758) 488098 <br>
-                            CUIT: 12345678910 <br>
+                            <strong style="font-size: 12pt">{{!empty($informacionGeneral) ? $informacionGeneral->nombre : ''}} </strong><br>
+                            {{!empty($informacionGeneral) ? $informacionGeneral->localidad : ''}} {{!empty($informacionGeneral) ? $informacionGeneral->provincia : ''}} <br>
+                            {{!empty($informacionGeneral) ? $informacionGeneral->direccion : ''}}<br>
+                            Celular: {{!empty($informacionGeneral) ? $informacionGeneral->celular : ''}} <br>
+                            CUIT: {{!empty($informacionGeneral) ? $informacionGeneral->cuit : ''}} <br>
                             </td>
                             <td style="width: 20%;">
                             <img src="{{ public_path('img/logo2.jpg') }}" alt="logo" width="115px">
@@ -68,10 +68,12 @@
                         </tr>
 
                         <tr>
-                            <td style="width: 100%;text-align: center; font-weight: bold;" colspan="2">
-                            <strong style="font-size: 16pt;">Comprobante de pago - Diagnóstico </strong><br>
-                            <strong style="font-size: 8pt;">Nro de Comprobante: </strong><br>
-                            <strong style="font-size: 8pt;">Cliente: </strong><br>
+                            <td style="width: 100%;text-align: center; font-weight: bold;line-height:15px;" colspan="2">
+                            <strong style="font-size: 16pt;">Comprobante de pago - {{$servicio}} </strong><br>
+                            <strong style="font-size: 8pt;">Nro de Comprobante: {{$comprobante->id}} </strong><br>
+                            <strong style="font-size: 8pt;">Cliente: {{$user}} </strong><br>
+                            <strong style="font-size: 8pt;">Fecha pago: {{$pago->fechapago}} </strong><br>
+                            <strong style="font-size: 8pt;">Tipo pago: {{$tipopago}}</strong><br>
                             </td>
                            
                             </td>
@@ -90,46 +92,42 @@
                         
         </table>  
         <div class="inner_fixed" style="text-align: left">
-            <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio 9</span>
-            <span style="float: right; margin-right:10px;font-size: 10pt;">$10000</span>
-            <br>
-            <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio 9</span>
-            <span style="float: right; margin-right:10px;font-size: 10pt;">$10000</span>
-            <br>
-            <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio 9</span>
-            <span style="float: right; margin-right:10px;font-size: 10pt;">$10000</span>
-            <br>
-            <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio 9</span>
-            <span style="float: right; margin-right:10px;font-size: 10pt;">$10000</span>
-            <br>
-            <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio 9</span>
-            <span style="float: right; margin-right:10px;font-size: 10pt;">$10000</span>
-            <br>
+          @foreach($pago->ordenespago as $orden)
+               <span style="float: left; margin-left:5px;font-size: 10pt;">Orden de Servicio {{$orden->id}}</span>
+              @if($orden->id_servicio == 2)
+                <span style="float: right; margin-right:10px;font-size: 10pt;">${{$orden->equipo->orden()->where('id_servicio', 1)->orderBy('created_at', 'desc')->first()->presupuestoOrden->presupuesto}}</span>
+                <br>
+              @elseif($orden->id_servicio == 1)
+                
+                <span style="float: right; margin-right:10px;font-size: 10pt;">${{$pago->precio/count($pago->ordenespago()->get())}}</span>
+                <br>
+              @endif
+            @endforeach
         </div>
         <div class="inner_fixed" style="text-align: left;  height: 30px; font-size: 10pt;">
             <strong style="float: left; margin-left:10px; margin-top:5px">Total</strong>
-            <strong style="float: right; margin-right:10px; margin-top:5px">$10000</strong>
+            @if($orden->id_servicio == 2)
+              <strong style="float: right; margin-right:10px; margin-top:5px">${{$pago->precio}}</strong>
+            @elseif($orden->id_servicio == 1)
+              <strong style="float: right; margin-right:10px; margin-top:5px">${{$pago->precio}}</strong>
+            @endif
         </div>
         <div class="inner_fixed" style="border-top:0px;font-size: 10pt; height: 50px;">
             <strong>Recordar:</strong>
             <span>No tirar este comprobante, ya que puede utilizarlo para realizar un reclamo respecto a la Orden de Servicio prestada.</span><br>
         </div>
     </div>
-              
-
-
-   
 
     <script type="text/php">
     if (isset($pdf)) {
-                $text = "Página {PAGE_NUM} de {PAGE_COUNT}";
-                $size = 10;
+                  $text = "";
+                  $size = 10;
                 $font = $fontMetrics->getFont("Arial");
                 $width = $fontMetrics->get_text_width($text, $font, $size) / 2;
                 $x = ($pdf->get_width() - $width);
                 $y = $pdf->get_height() - 35;
                 $pdf->page_text($x, $y, $text, $font, $size);
-                $pdf->page_text(40, $y, "Generado por: ".Auth::user()->name. ' '. Auth::user()->lastname." - ".now()->format('d/m/Y H:i:s'), $font, $size);
+                $pdf->page_text(40, $y, "Comprobante generado por: ". Auth::user()->lastname . ' '. Auth::user()->name. ' '." - ".now()->format('d/m/Y H:i:s'), $font, $size);
             }
 	</script>
 </body>

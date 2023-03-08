@@ -67,6 +67,8 @@
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
+                                                    <th>Fecha Diagnóstico</th>
+                                                    <th>Precio</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -99,6 +101,8 @@
                                         <th>Modelo</th>
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
+                                        <th>Fecha Diagnóstico</th>
+                                        <th>Precio</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -178,11 +182,11 @@
             })
             
             $(document).ready(function() {
-                               
+                var totalPresupuesto = 0;           
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equiposPresupuestados')}}",
+                    "ajax":  "{{route('equiposPresupuestosRechazados')}}",
                     "columns": [
                         {data: 'id'},
                         {data: 'tipoequipo.nombre'},
@@ -190,6 +194,8 @@
                         {data: 'modelo'},
                         {data: 'user.name'},
                         {data: 'fechaIngreso'},                
+                        {data: 'fechaDiagnostico'},                
+                        {data: 'precio'},                
                     ],
                     'columnDefs': [
                     {
@@ -238,6 +244,7 @@
                 // console.log('Elementos array ', table.columns().checkboxes.selected()[0][0]);
                 // console.log('Entrante ', idEquipment);
                 for (let i = 0; i <= table.columns().checkboxes.selected()[0].length; i++) {
+                    console.log(table.columns().checkboxes.selected()[0]);
                     console.log('iterador', i);
                     console.log(table.row(i).data().id);
                     
@@ -246,10 +253,12 @@
                         Swal.fire('Como mínimo debe ser 1 Equipo.')
                     } else if(rows_selected > 1) {
                         if(table.row(i).data().id == idEquipment){
-                        console.log('a borrar ',table.row(i).data().id);    
+                        totalPresupuesto = totalPresupuesto - table.row(i).data().precio;
+                        document.getElementById("sumaPresupuesto").innerHTML = totalPresupuesto;
+                        console.log('a borrar ',table.row(i).data().precio);    
                         table.row(i).deselect();
                         filaEquipment.parentNode.removeChild(filaEquipment);
-}
+                        }       
                         
                     }
                     
@@ -275,7 +284,7 @@
 
                     Swal.fire(
                         'Registro Exitoso!',
-                        'Se registró con éxito el Pago del Diagnóstico de los Equipos.', "success");
+                        'Se registró con éxito el Pago del Diagnóstico de el/los Equipos.', "success");
                         $( "#enviar" ).submit();
                         
                 } else {
@@ -291,7 +300,7 @@
                 console.log(tbodySelectedEquipments);
                 
                 tbodySelectedEquipments.innerHTML = "";
-
+                totalPresupuesto = 0;
                 for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
                     console.log(table.rows({selected: true}).data()[index].id);
                     //Insertando Fila
@@ -333,6 +342,21 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaIngreso.appendChild(contenidoIngreso);
 
+                    //Celda Fecha Diagnóstico
+                    var celdaFechaDiagnostico = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoFechaDiagnostico = document.createTextNode(table.rows({selected: true}).data()[index].fechaDiagnostico);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaFechaDiagnostico.appendChild(contenidoFechaDiagnostico);
+
+                    //Celda Precio
+                    var celdaPrecio = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoPrecio = document.createTextNode(table.rows({selected: true}).data()[index].precio);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaPrecio.appendChild(contenidoPrecio);
+
+                    totalPresupuesto = totalPresupuesto + table.rows({selected: true}).data()[index].precio;
 
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
@@ -348,7 +372,31 @@
 
                     celdaBtn.appendChild(btn);
                 }
+
+                //Fila Total
+                var newRow = tbodySelectedEquipments.insertRow();
+                newRow.setAttribute('style','border: 1px solid gray;');
                 
+                //Insertamos celdas para que colspan funcione.
+                primeraCeldaTotalTexto = newRow.insertCell();
+                primeraCeldaTotalTexto.setAttribute('style','font-weight:bold');
+                var contenidoTextoTotal = document.createTextNode('Total');
+                primeraCeldaTotalTexto.appendChild(contenidoTextoTotal);
+
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+
+                var celdaTotal = newRow.insertCell();
+                celdaTotal.setAttribute('style','font-weight:bold');
+                celdaTotal.setAttribute('id','sumaPresupuesto');
+
+                celdaTotal.colSpan = "4";
+                var contenidoTotal = document.createTextNode(totalPresupuesto);
+                celdaTotal.appendChild(contenidoTotal);
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
@@ -567,7 +615,6 @@
                 pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
 
                 divCardFooter.appendChild(pCardFooter);
-
                 
                 }     
             

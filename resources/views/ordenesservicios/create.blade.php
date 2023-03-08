@@ -109,7 +109,7 @@
                             <div class="row">
                                 <div class="col-xs-6 col-sm-6 col-md-6">
                                             <div class="form-group"> 
-                                                <label for="fecha">Fecha Prometida</label>
+                                                <label for="fecha">Fecha Estimada</label>
                                             {!!Form::date('fecha', null, ['class' => 'form-control', 'id'=>'fecha'] )!!} 
                                             </div>
                                 </div>
@@ -216,13 +216,13 @@
                         var fechaActualFormat = new Date(fechaActual.getFullYear(),fechaActual.getMonth(),fechaActual.getDate());
 
                         if(fechaElegida < fechaActualFormat){
-                            Swal.fire('Debe de elegir una fecha prometida superior a la actual.')
+                            Swal.fire('Debe de elegir una fecha estimada superior a la actual.')
                         } else {
                             validateFecha = true;
                         }
                         
                     } else {
-                        Swal.fire('Debe de elegir una fecha prometida.')
+                        Swal.fire('Debe de elegir una fecha estimada.')
                     }
                     
                     if(detalle != ''){
@@ -236,7 +236,7 @@
                     }
                    
                 } else {
-                    Swal.fire('Debe de elegir una fecha prometida.');
+                    Swal.fire('Debe de elegir una fecha estimada.');
                 }
 
                 var form = document.getElementById('frm-example');

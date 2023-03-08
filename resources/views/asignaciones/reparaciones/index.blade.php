@@ -121,15 +121,6 @@
                             <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
-                    <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a>
-                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
-
-                    <p><button>Submit</button></p>
-
-                    <p><b>Selected rows data:</b></p>
-                    <pre id="example-console-rows"></pre>
-
-                    <p><b>Form data as submitted to the server:</b></p> -->
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -275,9 +266,6 @@
                 var filaEquipment = equipment.parentNode.parentNode;
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
-                // console.log('checks ', table.columns().checkboxes.selected()[0].length);
-                // console.log('Elementos array ', table.columns().checkboxes.selected()[0][0]);
-                // console.log('Entrante ', idEquipment);
                 for (let i = 0; i <= table.columns().checkboxes.selected()[0].length; i++) {
                     console.log('iterador', i);
                     console.log(table.row(i).data().id);
@@ -295,19 +283,7 @@
                     }
                     
                 }
-                //console.log(table.row(1).data());
-                // console.log(table.row(1).selected(true));
-                // console.log(table.row(0).deselect());
 
-
-                //console.log(table.rows({selected: true}).checkboxes.deselect(true));
-                //selected = table.columns().checkboxes.selected()[0][0];
-                //console.log(table.columns().checkboxes);
-                //console.log(table.columns().checkboxes.selected()[0][0]);
-                //console.log(table.rows({selected: true})[0][0].deselect(true));
-                //console.log(table.rows({selected: true}).data()[0]);
-                //table.columns().checkboxes.deselect(true);
-                //table.rows( { selected: true } ).data().pluck(0).toArray();
             }
                 
 
@@ -410,13 +386,6 @@
 
                     celdaBtn.appendChild(btn);
                 }
-
-                
-                
-
-                // btn.addEventListener("click", function () {
-                // alert("Button is clicked");
-                // });
                 
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
@@ -427,38 +396,6 @@
                 } else {
                     stepper1.next();
                 }
-
-                
-
-            //     e.preventDefault();
-            //     var form = document.getElementById('frm-example');;
-            //     var rows_selected = table.column(0).checkboxes.selected();
-            //     //console.log(table.column(0).checkboxes.selected()[0])
-            //     // Iterate over all selected checkboxes
-            //     $.each(rows_selected, function(index, rowId){
-            //         console.log("si pasa")
-
-            //         // Create a hidden element 
-            //         $(form).append(
-            //             $('<input type="text" hidden>')
-            //                 .attr('name', 'idEquipos[]')
-            //                 .attr('value',rowId)
-            //         );
-            //     });
-
-            //     // FOR DEMONSTRATION ONLY
-            //     // The code below is not needed in production
-                
-            //     // Output form data to a console     
-            //     $('#example-console-rows').text(rows_selected.join(","));
-                
-            //     // Output form data to a console     
-            //     $('#example-console-form').text($(form).serialize());
-                
-            //     // Remove added elements
-            //     //$('input[name="id\[\]"]', form).remove();
-            //     table.column(0).checkboxes.selected()[0];
-            //     // Prevent actual form submission
                
             });
 
@@ -470,18 +407,6 @@
                 } else {
                     stepper1.next();
                 }
-            //     var form = document.getElementById('frm-example');;
-            //     console.log(tablita.rows( { selected: true } ).data()[0][0]);
-            //     var tecnico = tablita.rows( { selected: true } ).data()[0][0];
-
-            //     if(tecnico){
-            //         $(form).append(
-            //             $('<input type="text" hidden>')
-            //                 .attr('name', 'idTecnico[]')
-            //                 .attr('value', tecnico)
-            //         );
-            //     }
-               
 
             });
 
@@ -619,25 +544,43 @@
                     buttonH2.setAttribute('aria-controls', 'collapseOne');
                     buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
+                    var createdDate = new Date(response.data[0].comentarios[i].created_at);
+                    var hours = createdDate.getHours();
+                    var minutes = createdDate.getMinutes();
+                    var ampm = hours >= 12 ? 'pm' : 'am';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // the hour '0' should be '12'
+                    minutes = minutes < 10 ? '0'+minutes : minutes;
+                    var strTime = hours + ':' + minutes + ' ' + ampm;
+
+                    var mes = '';
+                    if(parseInt((createdDate.getMonth()+1)) <= 9){
+                        mes = '0' + (createdDate.getMonth()+1)
+                    } else {
+                        mes = (createdDate.getMonth()+1);
+                    }
+
+                  var fecha = createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+
                     //Control de Tipo de Comentario o Detalle
                     if(response.data[0].comentarios[i].id_estado == 1){
-                        buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                     }
 
                     if(response.data[0].comentarios[i].id_estado == 9){
-                        buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                     }
 
                     if(response.data[0].comentarios[i].id_estado == 4){
-                        buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                     }
 
                     if(response.data[0].comentarios[i].id_estado == 10){
-                        buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                     }
 
                     if(response.data[0].comentarios[i].id_estado == 5){
-                        buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
                     }
 
                     headerH2.appendChild(buttonH2);

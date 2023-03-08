@@ -41,7 +41,9 @@ class CreateEquiposTable extends Migration
                     ->constrained('users')
                     ->cascadeOnUpdate()
                     ->nullOnDelete();
-        });
+
+            $table->timestamps();
+        });  
     }
 
     /**

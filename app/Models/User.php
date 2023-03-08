@@ -12,11 +12,13 @@ use App\Models\OrdenServicio;
 //spatie
 use Spatie\Permission\Traits\HasRoles;
 use OwenIt\Auditing\Contracts\Auditable;
+use Carbon\Carbon;
 
 class User extends Authenticatable implements Auditable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
     use \OwenIt\Auditing\Auditable;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +31,7 @@ class User extends Authenticatable implements Auditable
         'lastname',
         'username',
         'password',
+        'numero',
     ];
 
     /**
@@ -77,5 +80,20 @@ class User extends Authenticatable implements Auditable
 
     public function ordenesAsignadas(){
         return $this->belongsToMany(OrdenServicio::class, 'users_ordenes', 'id_user', 'id_orden');
+    }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
+    }
+
+    public function getEmailverifiedAtAttribute($date)
+    {
+        return Carbon::parse($date)->format('d-m-Y H:i:s');
     }
 }

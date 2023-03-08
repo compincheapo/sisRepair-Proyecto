@@ -53,7 +53,7 @@
                                 </button>
                             </div>
                         </div>
-                        {!! Form::open(array('route'=> 'registrarPagoDiagnostico', 'method'=> 'POST', 'id' => 'frm-example')) !!}
+                        {!! Form::open(array('route'=> 'registrarPagoReparacion', 'method'=> 'POST', 'id' => 'frm-example')) !!}
 
                         <div class="bs-stepper-content">
                             <div id="test-l-1" class="content">
@@ -68,6 +68,7 @@
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
                                                     <th>Fecha Reparación</th>
+                                                    <th>Presupuesto</th>
                                                 </tr>
                                             </thead>
                                     </table>
@@ -101,6 +102,7 @@
                                         <th>Cliente</th>
                                         <th>Fecha Ingreso</th>
                                         <th>Fecha Reparación</th>
+                                        <th>Presupuesto</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -111,20 +113,11 @@
                             </table>
 
 
-                            <p class="text-center">¿Está seguro de registrar el pago de estos Diagnósticos?</p>
+                            <p class="text-center">¿Está seguro de registrar el pago de estas Reparaciones?</p>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
                             <input type="submit" value="Registrar" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
-                    <!-- <a href="#" onclick="e.preventDefault()"id="selected">Touch Me</a> -->
-                    <!-- <p>Press <b>Submit</b> and check console for URL-encoded form data that would be submitted.</p>
-
-                    <p><button>Submit</button></p>
-
-                    <p><b>Selected rows data:</b></p>
-                    <pre id="example-console-rows"></pre>
-
-                    <p><b>Form data as submitted to the server:</b></p> -->
                 <pre id="example-console-form"></pre>
                 {!! Form::close() !!}
                 </div>
@@ -189,11 +182,13 @@
             })
             
             $(document).ready(function() {
+
+                var totalPresupuesto = 0;
                                
 
                 var table =  $('#users').DataTable({
                     "serverSide": true,
-                    "ajax":  "{{route('equipos.equiposreparados')}}",
+                    "ajax":  "{{route('equiposReparadosNoPagados')}}",
                     "columns": [
                         {data: 'id'},
                         {data: 'tipoequipo.nombre'},
@@ -202,6 +197,7 @@
                         {data: 'user.name'},
                         {data: 'fechaIngreso'},                
                         {data: 'fechaReparacion'},                
+                        {data: 'presupuesto'},                
                     ],
                     'columnDefs': [
                     {
@@ -246,9 +242,6 @@
                 var filaEquipment = equipment.parentNode.parentNode;
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
-                // console.log('checks ', table.columns().checkboxes.selected()[0].length);
-                // console.log('Elementos array ', table.columns().checkboxes.selected()[0][0]);
-                // console.log('Entrante ', idEquipment);
                 for (let i = 0; i <= table.columns().checkboxes.selected()[0].length; i++) {
                     console.log('iterador', i);
                     console.log(table.row(i).data().id);
@@ -260,8 +253,10 @@
                         if(table.row(i).data().id == idEquipment){
                         console.log('a borrar ',table.row(i).data().id);    
                         table.row(i).deselect();
+                        totalPresupuesto = totalPresupuesto - table.row(i).data().presupuesto;
+                        document.getElementById("sumaPresupuesto").innerHTML = totalPresupuesto;
                         filaEquipment.parentNode.removeChild(filaEquipment);
-}
+                        }
                         
                     }
                     
@@ -287,7 +282,7 @@
 
                     Swal.fire(
                         'Registro Exitoso!',
-                        'Se registró con éxito el Pago del Diagnóstico de los Equipos.', "success");
+                        'Se registró con éxito el Pago del Reparación de el/los Equipos.', "success");
                         $( "#enviar" ).submit();
                         
                 } else {
@@ -304,6 +299,7 @@
                 
                 tbodySelectedEquipments.innerHTML = "";
 
+                totalPresupuesto = 0;
                 for (let index = 0; index < table.rows({selected: true})[0].length; index++) {
                     console.log(table.rows({selected: true}).data()[index].id);
                     //Insertando Fila
@@ -352,6 +348,15 @@
                     //Insertando sobre la celda el contenido tipo texto.
                     celdaFechaReparacion.appendChild(contenidoFechaReparacion);
 
+                    //Celda Presupuesto
+                    var celdaPresupuesto = newRow.insertCell();
+                    //Insertando Contenido tipo texto.
+                    var contenidoPresupuesto = document.createTextNode(table.rows({selected: true}).data()[index].presupuesto);
+                    //Insertando sobre la celda el contenido tipo texto.
+                    celdaPresupuesto.appendChild(contenidoPresupuesto);
+
+                    totalPresupuesto = totalPresupuesto + table.rows({selected: true}).data()[index].presupuesto;
+
 
                     //Celda Btn
                     var celdaBtn = newRow.insertCell();
@@ -365,9 +370,33 @@
                         uncheckEquipment(e);
                     };
 
+                   
                     celdaBtn.appendChild(btn);
                 }
+
+                //Fila Total
+                var newRow = tbodySelectedEquipments.insertRow();
+                newRow.setAttribute('style','border: 1px solid gray;');
                 
+                //Insertamos celdas para que colspan funcione.
+                primeraCeldaTotalTexto = newRow.insertCell();
+                primeraCeldaTotalTexto.setAttribute('style','font-weight:bold');
+                var contenidoTextoTotal = document.createTextNode('Total');
+                primeraCeldaTotalTexto.appendChild(contenidoTextoTotal);
+
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+                newRow.insertCell();
+
+                var celdaTotal = newRow.insertCell();
+                celdaTotal.setAttribute('style','font-weight:bold');
+                celdaTotal.colSpan = "4";
+                var contenidoTotal = document.createTextNode(totalPresupuesto);
+                celdaTotal.appendChild(contenidoTotal);
+                celdaTotal.setAttribute('id','sumaPresupuesto');
 
                 var rows_selected = table.column(0).checkboxes.selected().count();
 
@@ -475,95 +504,114 @@
                     }
                     
                 }
+                if(response.data[0].comentarios){
 
-                if(response.data[0].comentario){
+                    //Div hermano.
+                    var divRowBro = document.getElementById('divRowBro').parentNode;
 
-                //Div hermano.
-                var divRowBro = document.getElementById('divRowBro').parentNode;
-                
-                //Div Accordion.
-                var divAccordion = document.createElement("div");
-                divAccordion.setAttribute('class', 'accordion');
-                divAccordion.setAttribute('style', 'margin-top:15px;');
-                divAccordion.setAttribute('id', 'accordionExample');
+                    //Div Accordion.
+                    var divAccordion = document.createElement("div");
+                    divAccordion.setAttribute('class', 'accordion');
+                    divAccordion.setAttribute('style', 'margin-top:15px;');
+                    divAccordion.setAttribute('id', 'accordionExample');
 
-                divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
-
-
-                //-------------------- RECORRIDO COMENTARIO ---------------------------
-            
-                    
-                //Div Card
-                var divCard = document.createElement("div");
-                divCard.setAttribute('class', 'card');
-                divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
-
-                divAccordion.appendChild(divCard);
-
-                //Div Card-header
-                var divCardHeader = document.createElement("div");
-                divCardHeader.setAttribute('class', 'card-header');
-                divCardHeader.setAttribute('id', 'headingOne');
-                divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
-
-                divCard.appendChild(divCardHeader);
-
-                //H2
-                var headerH2 = document.createElement("h2");
-
-                divCardHeader.appendChild(headerH2);
+                    divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
 
-                //Button H2
-                var buttonH2 = document.createElement("button");
-                buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
-                buttonH2.setAttribute('type', 'button');
-                buttonH2.setAttribute('data-toggle', 'collapse');
-                buttonH2.setAttribute('data-target', '#collapseOne');
-                buttonH2.setAttribute('aria-expanded', 'true');
-                buttonH2.setAttribute('aria-controls', 'collapseOne');
-                buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
+                    //-------------------- RECORRIDO COMENTARIOS ---------------------------
 
-                //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle Reparación Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
-        
+                    console.log(response.data[0].comentarios.length, 'cantidad comentarios');
 
-                headerH2.appendChild(buttonH2);
+                    for (let i = 0; i < response.data[0].comentarios.length; i++) {
 
-                //divCollapse
-                var divCollapse = document.createElement("div");
-                divCollapse.setAttribute('data-collapse', '#mycard-collapse')
-                divCollapse.setAttribute('id', 'collapseOne')
-                divCollapse.setAttribute('class', 'collapse')
-                divCollapse.setAttribute('aria-labelledby', 'headingOne')
-                divCollapse.setAttribute('data-parent', '#accordionExample')
+                        //Div Card
+                        var divCard = document.createElement("div");
+                        divCard.setAttribute('class', 'card');
+                        divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
 
-                divCard.appendChild(divCollapse);
+                        divAccordion.appendChild(divCard);
 
-                //div Card-Body
-                var divCardBody = document.createElement("div");
-                divCardBody.setAttribute('class', 'card-body')
-                divCardBody.innerHTML = response.data[0].comentario.descripcion;
+                        //Div Card-header
+                        var divCardHeader = document.createElement("div");
+                        divCardHeader.setAttribute('class', 'card-header');
+                        divCardHeader.setAttribute('id', 'headingOne');
+                        divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
 
-                divCollapse.appendChild(divCardBody);
+                        divCard.appendChild(divCardHeader);
 
-                //Div Colapsable card-footer
-                var divCardFooter = document.createElement("div");
-                divCardFooter.setAttribute('class', 'card-footer');
-                divCardFooter.innerHTML = 'Escrito por:'
+                        //H2
+                        var headerH2 = document.createElement("h2");
 
-                divCollapse.appendChild(divCardFooter);
+                        divCardHeader.appendChild(headerH2);
 
-                //Parrafo card-footer
 
-                var pCardFooter = document.createElement("p");
-                pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
-                pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
+                        //Button H2
+                        var buttonH2 = document.createElement("button");
+                        buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
+                        buttonH2.setAttribute('type', 'button');
+                        buttonH2.setAttribute('data-toggle', 'collapse');
+                        buttonH2.setAttribute('data-target', '#collapseOne'+i);
+                        buttonH2.setAttribute('aria-expanded', 'true');
+                        buttonH2.setAttribute('aria-controls', 'collapseOne');
+                        buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
-                divCardFooter.appendChild(pCardFooter);
+                        //Control de Tipo de Comentario o Detalle
+                        if(response.data[0].comentarios[i].id_estado == 1){
+                            buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        }
 
-                
-                }     
+                        if(response.data[0].comentarios[i].id_estado == 4){
+                            buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        }
+
+                        if(response.data[0].comentarios[i].id_estado == 10){
+                            buttonH2.innerHTML = 'Detalle Presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        }
+
+                        if(response.data[0].comentarios[i].id_estado == 5){
+                            buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        }
+
+                        if(response.data[0].comentarios[i].id_estado == 8){
+                            buttonH2.innerHTML = 'Detalle Ingreso a Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
+                        }
+
+                        headerH2.appendChild(buttonH2);
+
+                        //divCollapse
+                        var divCollapse = document.createElement("div");
+                        divCollapse.setAttribute('data-collapse', '#mycard-collapse')
+                        divCollapse.setAttribute('id', 'collapseOne'+i)
+                        divCollapse.setAttribute('class', 'collapse')
+                        divCollapse.setAttribute('aria-labelledby', 'headingOne')
+                        divCollapse.setAttribute('data-parent', '#accordionExample')
+
+                        divCard.appendChild(divCollapse);
+
+                        //div Card-Body
+                        var divCardBody = document.createElement("div");
+                        divCardBody.setAttribute('class', 'card-body')
+                        divCardBody.innerHTML = response.data[0].comentarios[i].descripcion;
+
+                        divCollapse.appendChild(divCardBody);
+
+                        //Div Colapsable card-footer
+                        var divCardFooter = document.createElement("div");
+                        divCardFooter.setAttribute('class', 'card-footer');
+                        divCardFooter.innerHTML = 'Escrito por:'
+
+                        divCollapse.appendChild(divCardFooter);
+
+                        //Parrafo card-footer
+
+                        var pCardFooter = document.createElement("p");
+                        pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
+                        pCardFooter.innerHTML = response.data[0].comentarios[i].lastname + ' ' + response.data[0].comentarios[i].name;
+
+                        divCardFooter.appendChild(pCardFooter);
+
+                    }
+                }
             
             },
             error: function(){

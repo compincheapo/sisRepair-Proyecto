@@ -17,6 +17,7 @@ class CreateTiporepuestosTable extends Migration
             $table->id();
             $table->string('nombre', 50);
             $table->string('descripcion', 200)->nullable();
+            $table->timestamps();
         });
     }
 
