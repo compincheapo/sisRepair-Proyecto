@@ -17,7 +17,12 @@ class InformacionGeneralController extends Controller
        $informacionGeneral = InformacionGeneral::first();
        $precioDiagnostico = Precio::where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
        $diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-       $terminos = DB::table('terminos')->where('id_informaciongeneral', $informacionGeneral->id)->orderBy('created_at', 'desc')->get();
+       
+       if(!empty($informacionGeneral)){
+           $terminos = DB::table('terminos')->where('id_informaciongeneral', $informacionGeneral->id)->orderBy('created_at', 'desc')->get();
+       } else {
+            $terminos = [];
+       }
 
 
        return view('informaciongeneral.index', compact('informacionGeneral', 'precioDiagnostico', 'diasSemana', 'terminos'));

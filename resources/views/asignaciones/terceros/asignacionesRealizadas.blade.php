@@ -32,7 +32,7 @@
                                     </button>
                             </div>
                     @endif
-                    <div class="container">
+                    
                     <div class="table-responsive table-bordered">
                         <table id="example" class="display" style="width:100%">
                             <thead>
@@ -48,7 +48,7 @@
                                 </tr>
                             </thead>
                         </table>
-                    </div>     
+                         
                     </div>  
                     </div>
                     </div>
@@ -96,6 +96,7 @@
           <button type="button" class="btn btn-primary" id="btnGuardar">Reasignar</button>
           <button type="button" class="btn btn-primary" id="btnPre">Presupuestar</button>
           <button type="button" class="btn btn-primary" id="btnAceptarPre">Aceptar Presupuesto</button>
+          <a class="btn btn-danger mr-2" id="rechBtn"  onclick="event.preventDefault();">Rechazar Presupuesto</a>
           <button type="button" class="btn btn-primary" id="btnRegistrarRet">Registrar Retiro</button>
           <button type="button" class="btn btn-secondary closeBtn" data-dismiss="modal">Cerrar</button>
       </div>
@@ -164,8 +165,29 @@ $(document).ready(function() {
             {data: 'servicio'},
             {data: 'estado'},
             {data: 'action', name: 'action', orderable: false, searchable:false}
-    
         ],
+        'order': [[1, 'asc']],
+                "language": {
+                    "info": "_TOTAL_ registros",
+                    "search": "Buscar",
+                    "paginate": {
+                        "next": "Siguiente",
+                        "previous": "Anterior",
+                    },
+                    "lengthMenu": 'Mostrar <select >'+
+                                '<option value="5">5</option>'+
+                                '<option value="10">10</option>'+
+                                '<option value="50">50</option>'+
+                                '<option value="100">100</option>'+
+                                '<option value="-1">Todos</option>'+
+                                '</select> registros',
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "emptyTable": "No hay datos",
+                    "zeroRecords": "No hay coincidencias", 
+                    "infoEmpty": "",
+                    "infoFiltered": ""
+                }
     } );
 
     //Detalle Equipo
@@ -188,6 +210,7 @@ $(document).ready(function() {
 
                 $('#btnGuardar').addClass("d-none");
                 $('#btnPre').addClass("d-none");
+                $('#rechBtn').addClass("d-none");
                 $('#nameError').addClass("d-none");
                 $('#emailError').addClass("d-none");
                 $('#btnFinalizarDiag').addClass("d-none");
@@ -243,6 +266,7 @@ $(document).ready(function() {
                     $('#divPresupuesto').removeClass('d-none');
                     if(response.data[0].servicio == 1 && response.data[0].estado == 10){
                         $('#btnAceptarPre').removeClass('d-none');
+                        $('#rechBtn').removeClass('d-none');
                     }
                 }
                 if(response.data[0].estado != 2 && response.data[0].estado != 6){
@@ -380,9 +404,6 @@ $(document).ready(function() {
                         buttonH2.innerHTML = 'Detalle Asignación Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
                     }
 
-                    if(response.data[0].comentarios[i].id_estado == 16){
-                        buttonH2.innerHTML = 'Detalle Retiro por Tercero ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
-                    }
                     if(response.data[0].comentarios[i].id_estado == 8){
                         buttonH2.innerHTML = 'Detalle Reparación Finalizada ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentarios[i].created_at + '<p>';
                     }
@@ -653,6 +674,7 @@ $(document).ready(function() {
 
                     $('#btnGuardar').addClass("d-none");
                     $('#btnPre').removeClass("d-none");
+                    $('#rechBtn').addClass("d-none");
                     $('#btnFinalizarDiag').addClass("d-none");
                     
                     if(document.getElementById('selectTecnicos')){
@@ -927,7 +949,8 @@ $(document).ready(function() {
             data: {
                 'idEquipo': idEquipo,
                 'fechacompaceptacion': fechacompaceptacion,
-                'detalleaceptpre': detalleaceptpre
+                'detalleaceptpre': detalleaceptpre,
+                'cliente': 'false'
             },
             success: function(response){
                 if(response){
@@ -935,7 +958,9 @@ $(document).ready(function() {
                 $('#example').DataTable().ajax.reload();
                 Swal.fire(
                 'Presupuesto Aceptado!',
-                response.success, "success")           
+                response.success, "success");
+                $('#fechacompaceptacion').val('');
+                $('#detalleaceptpre').val('');           
                 }
 
                 $('#exampleModal2').modal('hide');
@@ -947,6 +972,55 @@ $(document).ready(function() {
             }
         })
     });
+
+    $('body').on('click', '#rechBtn', function (){
+
+        Swal.fire({
+            title: 'Estas seguro de Rechazar el Presupuesto?',
+            text: "Al rechazar el Presupuesto, se deberá registrar el pago del Diagnóstico y registrar el retiro del Equipo.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Si, rechazar!',
+            cancelButtonText: 'Cancelar'
+            }).then((result) => {
+            if (result.isConfirmed) {
+                var id = $('#id').val();
+
+                $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                });
+
+                $.ajax({
+                    url: "{{route('rechazarPresupuesto')}}",
+                    method: 'POST',
+                    data: {
+                    'id': id,
+                    'cliente': 'false'
+                    },
+                    success: function(response){
+                        if(response){
+                            $('#example').DataTable().ajax.reload();
+
+                            Swal.fire(
+                            'Presupuesto Rechazado!',
+                            response.success, "success")           
+                            }
+                            $('.modalCreateForm').modal('hide');
+                    },
+                    error: function(error){
+                        if(error){ 
+                        console.log(error)
+                        }
+                    }
+                })
+            }
+    });
+
+});
 
 
 

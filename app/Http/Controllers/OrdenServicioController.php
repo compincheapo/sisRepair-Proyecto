@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\Pago;
 use PDF;
 use Carbon\Carbon;
+use App\Models\InformacionGeneral;
 
 class OrdenServicioController extends Controller
 {
@@ -358,6 +359,7 @@ class OrdenServicioController extends Controller
         $orden = OrdenServicio::findOrfail($id)->where('id', $id)->first();
         $equipo = $orden->equipo;
         $ultimaOrdenDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)->where('id_servicio', 1)->orderBy('created_at', 'desc')->first();
+        $informacionGeneral = InformacionGeneral::get()->first();
         
         if($orden->id_servicio == 1){
             $presupuesto = null;
@@ -369,7 +371,7 @@ class OrdenServicioController extends Controller
             $precio = null;
         }
  
-        return view('ordenesservicios.pagoorden', compact('orden', 'equipo', 'presupuesto', 'precio'));
+        return view('ordenesservicios.pagoorden', compact('orden', 'equipo', 'presupuesto', 'precio', 'informacionGeneral'));
     }
 
     public function getResultadoPagoOrdenSatisfactoria(Request $request, $id){

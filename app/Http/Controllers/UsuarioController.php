@@ -283,44 +283,7 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index');
     }
 
-    public function getEquiposDiagnostico()
-    {
-        $equipos = Equipo::select('id', 'serie', 'modelo', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
 
-        foreach ($equipos as $key => $value) {
-            $ordenEquipo = Equipo::findOrfail($value->id)->orden()->where('finalizado', 0)->first();
-            if($ordenEquipo != null){
-                $ultimoEstado = $ordenEquipo->estados()->first();
-                if($ultimoEstado->id != 1){
-                    unset($equipos[$key]);
-                    
-                } else {
-                    $value->fechaCompromiso = $ordenEquipo->fechacompromiso;
-
-                    $fechaIngreso = DB::table('equipos')
-                    ->select('equipos_estados_users_ordenes.created_at')
-                    ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
-                    ->where('equipos.id', $value->id)
-                    ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
-                    ->first();
-
-                    
-
-                    $value->fechaIngreso =  Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
-
-                }
-            } else {
-                unset($equipos[$key]);
-            }
-        }
-        
-         return DataTables()->collection($equipos)->addColumn('action', function($row){
-            return '
-            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>';
-        })
-        ->rawColumns(['action'])
-        ->toJson();  
-    }
 
     public function getTecnicos()
     {
@@ -355,7 +318,7 @@ class UsuarioController extends Controller
     }
 
 
-    public function asignarDiagnostico(Request $request){
+    public function asignarDiagnosticoaTecnico(Request $request){
 
         $this->validate($request, [
             'idTecnico' => 'required',
@@ -651,6 +614,97 @@ class UsuarioController extends Controller
             return DataTables()->collection($collection)->toJson();
         
         }
+
+    public function getAsignacionEquipoTercero($id){
+
+        $collection = new Collection;
+
+        $equipo = Equipo::findOrfail($id)->where('id', $id)->first();
+        $userActual = Auth::user()->id;
+
+        $idEstadoEquipo = DB::table('equipos')
+            ->select('equipos_estados_users_ordenes.id_estado')
+            ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+            ->where('equipos.id', $id)
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+            ->first();
+
+        $accesorios = $equipo->accesorios()->select('nombre')->get();
+
+        $ultimaOrdenEquipo = OrdenServicio::where('id_equipo', $equipo->id)
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+
+        if($ultimaOrdenEquipo->id_servicio == 1){
+
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->where('equipos.id', $id)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenEquipo->id)
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->first();
+
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->join('users_ordenes', 'equipos_estados_users_ordenes.id_orden', 'users_ordenes.id_orden')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->where('users_ordenes.id_orden', $ultimaOrdenEquipo->id)
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1])
+            ->get();
+        } 
+
+        $ultimaOrdenEquipoDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)
+            ->where('id_servicio', 1)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if($ultimaOrdenEquipo->id_servicio == 2){
+
+            $fechaIngreso = DB::table('equipos')
+            ->join('equipos_estados_users_ordenes','equipos.id', '=', 'equipos_estados_users_ordenes.id_equipo' )
+            ->join('ordenesservicio','equipos_estados_users_ordenes.id_orden', '=', 'ordenesservicio.id')
+            ->where('equipos.id', $id)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenEquipoDiagnostico->id)
+            ->select('equipos_estados_users_ordenes.created_at')
+            ->first();
+
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->join('users_ordenes', 'equipos_estados_users_ordenes.id_orden', 'users_ordenes.id_orden')
+            ->where('users_ordenes.estadoAsignacion', 1)
+            ->whereIn('users_ordenes.id_orden', [$ultimaOrdenEquipo->id, $ultimaOrdenEquipoDiagnostico->id])
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1, 4, 5])
+            ->get();
+
+        }       
+        
+        $equipo->accesorios = $accesorios;    
+        $equipo->fechacompromiso = $ultimaOrdenEquipo->fechacompromiso;
+        $equipo->fechaIngreso = Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
+        $equipo->estado = $idEstadoEquipo->id_estado; 
+        $equipo->comentarios = $comentarios;
+
+
+        if($ultimaOrdenEquipo->id_servicio == 2){      
+            $orden_presupuesto = DB::table('ordenservicios_presupuestos')
+            ->where('id_orden', $ultimaOrdenEquipoDiagnostico->id)->first();
+        }
+
+        if(!empty($orden_presupuesto)){
+            $equipo->presupuesto = $orden_presupuesto->presupuesto;
+        }
+
+        $collection->push($equipo);
+
+        return DataTables()->collection($collection)->toJson();
+    
+    }
       
         public function getAsignacionEquipoServicio($id){
 
@@ -672,7 +726,7 @@ class UsuarioController extends Controller
                 $ordenEquipoDiag = $equipo->orden()->where('finalizado', 1)->where('id_servicio', 1)->orderBy('created_at', 'desc')->get()->first();
 
                 if($orden->id_servicio == 2){
-                    $estados = [1, 16, 4, 10, 8, 5, 9];
+                    $estados = [1, 4, 10, 8, 5, 9];
                     $ordenes = [$orden->id, $ordenEquipoDiag->id];
                 } else if($orden->id_servicio == 1){
                     $estados = [1, 4];
@@ -1038,28 +1092,78 @@ class UsuarioController extends Controller
             $equipo = Equipo::findOrfail($request->get('idEquipo'))->where('id',  $request->get('idEquipo'))->first();
             $userActual = Auth::user()->id;
             $orden = Equipo::findOrfail($request->get('idEquipo'))->orden()->where('finalizado', 0)->first();
-
+            $fechaFin = Carbon::now();
             $estado = null;
             $message = '';
+
+            $cliente = User::findOrfail($equipo->id_user)->where('id', $equipo->id_user)->first();
         
             if($orden->id_servicio == 1){
+                DB::table('ordenservicios_presupuestos')
+                 ->insert(['id_orden' => $orden->id, 'presupuestado' => false]);
                 $estado = 4;
                 $message = 'El Diagnóstico ha sido registrado!';
+
+                if($cliente->numero){
+                    $mensaje = 'Hola '. $equipo->user->lastname . ' ' . $equipo->user->name . '.' .
+                    '\nEl Equipo *Tipo*: ' . $equipo->tipoequipo->nombre .
+                    ', *Marca*: ' .$equipo->marca->nombre .
+                    ', *Modelo*: ' .$equipo->modelo .
+                    '. Relacionado a la Orden de Servicio: *' . $orden->id . '* ha sido diagnósticado.' .
+                      '\nEl sitio para realizar consultas respecto al estado de sus Equipos es: https://localhost:8000/.' .
+                       '\n\nSaludos, SIC Servicios Informáticos.'; 
+    
+                   $mediaid = app('App\Http\Controllers\WhatsappController')->mensajePersonalizado($cliente->numero, $mensaje);
+                }
+
+                if($equipo->user->email){
+                    $equipo->user->notify(new FinalizarDiagnosticoNotification($equipo, $orden));
+                }
             }
 
             if($orden->id_servicio == 2){
                 $estado = 8;
                 $message = 'La Reparación ha sido registrada!';
-            }
 
-            $fechaFin = Carbon::now();
+                if($equipo->user->email){
+                    $equipo->user->notify(new FinalizarPagoNotification($equipo, $orden));
+                }
+        
+                if($equipo->user->numero){ 
+                    $mensaje = 'Hola '. $equipo->user->lastname . ' ' . $equipo->user->name .
+                     '.\nEl Equipo *Tipo*: ' . $equipo->tipoequipo->nombre .
+                     ', *Marca*: ' .$equipo->marca->nombre .
+                     ', *Modelo*: ' .$equipo->modelo .
+                     '. Relacionado a la Orden de Servicio: *' . $orden->id . '* ha sido reparado.' .
+                     '\n_Usted ahora dispone de dos medios de pagos:_\n*Mercadopago*: mediante el cual podrá realizar el pago a través el sistema ingresando  a la orden finalizada y tendrá una opcion para ello. También lo puede realizar de forma presencial con el mismo medio.'.
+                       '\n*Efectivo*: mediante el cual tendrá que acudir al local para poder realizar el pago en efectivo.' .
+                       '\nEl sitio para realizar consultas respecto al estado de sus Equipos es: https://localhost:8000/' .
+                        '.\n\nSaludos, SIC Servicios Informáticos.'; 
+        
+                    $mediaid = app('App\Http\Controllers\WhatsappController')->mensajePersonalizado($equipo->user->numero, $mensaje);
+                }
+        
+                $informacionGeneral = InformacionGeneral::get()->first();
+        
+                DB::table('notificacionpago')->insert([
+                    'conteo' => 0,
+                    'frecuencia' => $informacionGeneral->frecuencia_notif_cliente,
+                    'fechatomada' => $fechaFin,
+                    'cantidadveces' => $informacionGeneral->cant_notif_cliente,
+                    'id_user' => $equipo->user->id,
+                    'id_orden' => $orden->id,
+                    'created_at' =>  $fechaFin,
+                    'updated_at' =>  $fechaFin,
+                    'activo' =>  1,
+                ]);
+            }
     
             DB::table('equipos_estados_users_ordenes')->insert([
-                            'id_equipo' => $equipo->id,
-                            'id_estado' => $estado,
-                            'id_user' => $userActual,
-                            'id_orden' => $orden->id,
-                            'descripcion' => $request->get('detalle'),
+                'id_equipo' => $equipo->id,
+                'id_estado' => $estado,
+                'id_user' => $userActual,
+                'id_orden' => $orden->id,
+                'descripcion' => $request->get('detalle'),
             ]);
             
             DB::table('ordenesservicio')
@@ -1083,17 +1187,31 @@ class UsuarioController extends Controller
 
         $estante = Estante::findOrfail($equipoWithSeccion->seccionEstante->id_estante)->where('id',$equipoWithSeccion->seccionEstante->id_estante)->first();
 
-        $comentario = DB::table('equipos_estados_users_ordenes')
-        ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
-        ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
-        ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenServicio->id)
-        ->where('equipos_estados_users_ordenes.id_estado', 1)
-        ->first();
+        if($ultimaOrdenServicio->id_servicio == 1){
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->where('equipos_estados_users_ordenes.id_orden', $ultimaOrdenServicio->id)
+            ->where('equipos_estados_users_ordenes.id_estado', 1)
+            ->first();
+        }
 
+        if($ultimaOrdenServicio->id_servicio == 2){
+            $ultimaOrdenDiagnostico = OrdenServicio::where('id_equipo', $equipo->id)->where('id_servicio', 1)->orderBy('created_at', 'desc')->first(); 
+
+            $comentarios = DB::table('equipos_estados_users_ordenes')
+            ->select('equipos_estados_users_ordenes.created_at', 'equipos_estados_users_ordenes.id_estado', 'equipos_estados_users_ordenes.descripcion', 'users.name', 'users.lastname')
+            ->join('users', 'equipos_estados_users_ordenes.id_user', 'users.id')
+            ->whereIn('equipos_estados_users_ordenes.id_orden', [$ultimaOrdenServicio->id, $ultimaOrdenDiagnostico->id])
+            ->whereIn('equipos_estados_users_ordenes.id_estado', [1,4,5,8])
+            ->get();
+        }
+
+        
         $accesorios = $equipo->accesorios()->select('nombre')->get();
 
         $equipo->accesorios = $accesorios;    
-        $equipo->comentario = $comentario;
+        $equipo->comentarios = $comentarios;
         $equipo->estante = $estante->nombre;
         $equipo->seccionEstante = $equipoWithSeccion->seccionEstante->nombre;
 
@@ -1246,7 +1364,7 @@ class UsuarioController extends Controller
 
     }
 
-    public function estaPresupuestado($id){        
+    public function estaPresupuestado($id){         
 
         $estadoEquipo = DB::table('equipos')
         ->select('equipos_estados_users_ordenes.id_estado')
@@ -1254,6 +1372,8 @@ class UsuarioController extends Controller
         ->where('equipos.id', $id)
         ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
         ->first();
+
+        $ultimaOrdenEquipo = OrdenServicio::where('id_equipo', $id)->orderBy('created_at', 'desc')->first();
 
 
         if(!empty($estadoEquipo)){
@@ -1269,6 +1389,10 @@ class UsuarioController extends Controller
                 } else if ($estadoEquipo->id_estado >= 5 && $estadoEquipo->id_estado <= 8){
                     return response()->json([
                         'error' => 'El Equipo se encuentra en etapa de Reparación, el presupuesto ya ha sido realizado.'
+                    ]);
+                } else if ($estadoEquipo->id_estado == 16 || ($estadoEquipo->id_estado == 17 && $ultimaOrdenEquipo->id_servicio == 2)){
+                    return response()->json([
+                        'error' => 'El Equipo debe de contar con un estado Diagnosticado para realizar el presupuesto.'
                     ]);
                 }
             }
@@ -1923,34 +2047,35 @@ class UsuarioController extends Controller
             ->select('equipos_estados_users_ordenes.id_estado')
             ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
             ->where('equipos.id', $equipo)
-            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')->get();
+            ->orderBy('equipos_estados_users_ordenes.created_at', 'desc');
 
             $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 0)->first();
             $orden->fechacompromiso = $request->fecha;
             $orden->update();
             
             $ultimoEstadoEquipo = $estadosEquipo->first();
+            $anteUltimoEstadoEquipo = $estadosEquipo->limit(2)->skip(1)->first();
             
             if($ultimoEstadoEquipo->id_estado == 1){
                 $estado = 2;
-            } else if($ultimoEstadoEquipo->id_estado == 5){
+            } else if($ultimoEstadoEquipo->id_estado == 5 || ($ultimoEstadoEquipo->id_estado == 11 && $anteUltimoEstadoEquipo->id_estado == 5)){
                 $estado = 6;
             }
 
-           if(!empty($estado)){
-               DB::table('equipos_estados_users_ordenes')->insert([
-                   'id_equipo' => $equipo,
-                   'id_estado' => $estado,
-                   'id_user' => $gerente->id,
-                   'id_orden' => $orden->id,
-               ]);
-   
-               DB::table('users_ordenes')->insert([
-                   'estadoAsignacion' => true,
-                   'id_user' => $tercero->id,
-                   'id_orden' => $orden->id,
-               ]);
-           }
+           
+            DB::table('equipos_estados_users_ordenes')->insert([
+                'id_equipo' => $equipo,
+                'id_estado' => $estado,
+                'id_user' => $gerente->id,
+                'id_orden' => $orden->id,
+            ]);
+
+            DB::table('users_ordenes')->insert([
+                'estadoAsignacion' => true,
+                'id_user' => $tercero->id,
+                'id_orden' => $orden->id,
+            ]);
+           
 
            $fechaActual = Carbon::now();
            $informacionGeneral = InformacionGeneral::get()->first();
@@ -1961,7 +2086,7 @@ class UsuarioController extends Controller
                 'frecuencia' => $informacionGeneral->frecuencia_notif_tercero,
                 'fechatomada' => $fechaActual,
                 'cantidadveces' => $informacionGeneral->cant_notif_tercero,
-                'id_user' => $equipoActual->user->id,
+                'id_user' =>  $tercero->id,
                 'id_orden' => $orden->id,
                 'created_at' =>  $fechaActual,
                 'updated_at' =>  $fechaActual,
@@ -1983,8 +2108,9 @@ class UsuarioController extends Controller
        ->join('model_has_roles', 'users_ordenes.id_user', '=', 'model_has_roles.model_id')
        ->where('model_has_roles.role_id', 5)
        ->where('estadoAsignacion', 1)
-       ->whereIn('equipos_estados_users_ordenes.id_estado', [1])
+       ->whereIn('equipos_estados_users_ordenes.id_estado', [1,6])
        ->get();
+
        
        $collection = new Collection;
        
@@ -2014,7 +2140,7 @@ class UsuarioController extends Controller
             }
             
             if((($estado->id >= 2 && $estado->id <= 4) || ($estado->id >= 6 && $estado->id <= 10 ) || $estado->id == 10) || $estado->id == 16 || $estado->id == 17){
-                if($ultimaOrdenEquipo->id == $equipo->id_orden && $ultimoEstadoEquipo->id_estado == $estado->id){
+                if($ultimaOrdenEquipo->id == $equipo->id_orden && $ultimaOrdenEquipo->id_servicio == $equipo->id_servicio){
                     $collection->push($equipos);
                 }
             } 
@@ -2024,7 +2150,9 @@ class UsuarioController extends Controller
             return '
             <div style="text-align:center">
             <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>
-            </div>';
+            <a href="#" class="btn-sm btn btn-success preBtn" data-id="'.$row->id.'">Presupuestar</a>
+            </div>'
+           ;
         })
         ->rawColumns(['action'])
         ->toJson();
@@ -2053,16 +2181,19 @@ class UsuarioController extends Controller
             $detalleEquipo = $request->get('detallesEquipos')[$index];
             $estadoEquipo = $request->get('estadosEquipos')[$index];
 
-            DB::table('equipos_estados_users_ordenes')->insert([
-                'id_equipo' => $equipo,
-                'id_estado' => 17,
-                'id_user' => $gerente->id,
-                'id_orden' => $orden->id,
-            ]);
-
+            if($servicio == 1){
+                DB::table('equipos_estados_users_ordenes')->insert([
+                    'id_equipo' => $equipo,
+                    'id_estado' => 17,
+                    'id_user' => $gerente->id,
+                    'id_orden' => $orden->id,
+                ]);
+            }
 
             if($servicio == 1){
                 if($estadoEquipo == "true"){
+                    DB::table('ordenservicios_presupuestos')
+                    ->insert(['id_orden' => $orden->id, 'presupuestado' => false]);
                     $idEstado = 4;
                 } else {
                     $idEstado = 1;

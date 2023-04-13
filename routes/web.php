@@ -40,7 +40,7 @@ use App\Http\Controllers\WhatsappController;
 // });
 
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home')->middleware(['auth', 'role:Admin']);
 
 Route::group(['middleware' => ['auth']], function(){
     Route::resource('roles', RolController::class);
@@ -49,12 +49,12 @@ Route::group(['middleware' => ['auth']], function(){
 
 });
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home')->middleware(['auth', 'role:Admin']);
 
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home')->middleware('auth');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home')->middleware(['auth', 'role:Admin']);
 
 Route::resource('/estados', EstadoController::class)->middleware('auth');
 
@@ -178,10 +178,12 @@ Route::get('/asignacion/equipo/{id}', [UsuarioController::class, 'getAsignacionE
 
 Route::get('/asignacion/estapresupuestado/{id}', [UsuarioController::class, 'estaPresupuestado'])->name('estaPresupuestado')->middleware('auth');
 
+Route::get('/asignacion/equipo/tercero/{id}', [UsuarioController::class, 'getAsignacionEquipoTercero'])->name('getAsignacionEquipoTercero')->middleware('auth');
+
 
 
 // ------------------ Módulo Diagnóstico ------------------ 
-Route::get('/equiposDiagnostico', [UsuarioController::class, 'getEquiposDiagnostico'])->name('equiposDiagnostico')->middleware('auth');
+Route::get('/equiposDiagnostico', [EquipoController::class, 'getEquiposDiagnostico'])->name('equiposDiagnostico')->middleware('auth');
 
 Route::get('/asignacion/diagnostico', [UsuarioController::class, 'verDiagnosticos'])->name('diagnosticos')->middleware('auth');
 
@@ -213,7 +215,7 @@ Route::post('/asignacion/iniciardiagnostico', [UsuarioController::class, 'inicia
 
 Route::get('/asignacionesdiagnosticorealizadas', [UsuarioController::class, 'getAsignacionesDiagnosticoRealizadas'])->name('asignacionesdiagnosticorealizadas')->middleware('auth');
 
-Route::post('/asignacion/creardiagnostico', [UsuarioController::class, 'asignarDiagnostico'])->name('asignarDiagnostico')->middleware('auth');
+Route::post('/asignacion/creardiagnostico', [UsuarioController::class, 'asignarDiagnosticoaTecnico'])->name('asignarDiagnostico')->middleware('auth');
 
 
 

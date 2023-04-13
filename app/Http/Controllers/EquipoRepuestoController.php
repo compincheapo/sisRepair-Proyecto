@@ -245,7 +245,7 @@ class EquipoRepuestoController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'serie' => 'required',     //Verificar que al editar no se repita el número de serie con el id actual dado.     
+            'serie' => 'nullable',  
             'tipoequipo' => 'required',
             'marca' => 'required',
             'estante' => 'required',

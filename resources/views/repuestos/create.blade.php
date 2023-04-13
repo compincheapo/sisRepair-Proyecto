@@ -49,13 +49,6 @@
 
                                     <div class="col-xs-6 col-sm-6 col-md-6">
                                         <div class="form-group">
-                                            <label for="serie">Número Serie</label>
-                                            {!! Form::text('serie', null, array('class' => 'form-control'))!!}
-                                        </div>
-                                    </div>
-
-                                    <div class="col-xs-6 col-sm-6 col-md-6">
-                                        <div class="form-group">
                                             <label for="serie">Cantidad</label>
                                             {!! Form::text('cantidad', null, array('class' => 'form-control'))!!}
                                         </div>

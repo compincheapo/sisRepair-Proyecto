@@ -49,7 +49,7 @@
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Detalle y Fecha Estimada</span>
+                                <span class="bs-stepper-label">Fecha Estimada</span>
                                 </button>
                             </div>
                             <div class="line"></div>
@@ -104,16 +104,7 @@
                         </div>
 
                         <div id="test-l-3" class="content">
-                            <div class="row">
-                                <div class="col-xs-12 col-sm-12 col-md-12">
-                                    <div class="form-group"> 
-                                        <label for="descripcion">Detalle de la Asignación</label>
-                                        <div class="form-control" style="visibility: hidden; padding:0; height:20px">
-                                        </div>
-                                        {!! Form::textarea('descripcion', null, ['style' => 'width:100%; resize:none;', 'id'=>'descripcion'])!!}                                        
-                                    </div>
-                                </div>
-                            </div>
+                            
                             <div class="row">
                                 <div class="col-xs-6 col-sm-6 col-md-6">
                                             <div class="form-group"> 
@@ -318,8 +309,10 @@
                         "previous": "Anterior",
                     },
                     "lengthMenu": 'Mostrar <select >'+
+                                '<option value="5">5</option>'+
                                 '<option value="10">10</option>'+
-                                '<option value="30">30</option>'+
+                                '<option value="50">50</option>'+
+                                '<option value="100">100</option>'+
                                 '<option value="-1">Todos</option>'+
                                 '</select> registros',
                     "loadingRecords": "Cargando...",

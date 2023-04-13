@@ -100,9 +100,9 @@
                                     </tbody>
                                 
                                 </table>
+                                <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
+                                <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="detalles">Siguiente</button>
                             </div>
-                            <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <button class="btn btn-primary mt-2" onclick="event.preventDefault()" id="detalles">Siguiente</button>
                         </div>
 
                         <div id="test-l-3" class="content">
@@ -198,6 +198,26 @@
                     detalleElement.value = "";
                 }
            }
+
+           function formatearFecha(fecha){
+                var createdDate = new Date(fecha);
+                var hours = createdDate.getHours();
+                var minutes = createdDate.getMinutes();
+                var ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+
+                var mes = '';
+                if(parseInt((createdDate.getMonth()+1)) <= 9){
+                    mes = '0' + (createdDate.getMonth()+1)
+                } else {
+                    mes = (createdDate.getMonth()+1);
+                }
+
+                return createdDate.getDate() + "-" + mes + "-" + createdDate.getFullYear() + "  " + strTime;
+            }
 
             var stepper1Node = document.querySelector('#stepper1')
             var stepper1 = new Stepper(document.querySelector('#stepper1'),  {
@@ -614,12 +634,12 @@
                     }
                     
                 }
-
-                if(response.data[0].comentario){
+            console.log(response.data[0].comentarios)
+            if(response.data[0].comentarios.length){    
 
                 //Div hermano.
                 var divRowBro = document.getElementById('divRowBro').parentNode;
-                
+
                 //Div Accordion.
                 var divAccordion = document.createElement("div");
                 divAccordion.setAttribute('class', 'accordion');
@@ -628,10 +648,107 @@
 
                 divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
 
+                //-------------------- RECORRIDO COMENTARIOS ---------------------------
 
-                //-------------------- RECORRIDO COMENTARIO ---------------------------
-            
+                for (let i = 0; i < response.data[0].comentarios.length; i++) {
                     
+                //Div Card
+                var divCard = document.createElement("div");
+                divCard.setAttribute('class', 'card');
+                divCard.setAttribute('style', 'border: 1px solid #6777ef !important;');
+
+                divAccordion.appendChild(divCard);
+
+                //Div Card-header
+                var divCardHeader = document.createElement("div");
+                divCardHeader.setAttribute('class', 'card-header');
+                divCardHeader.setAttribute('id', 'headingOne');
+                divCardHeader.setAttribute('style', 'border-bottom: 1px solid #6777ef !important;');
+
+                divCard.appendChild(divCardHeader);
+
+                //H2
+                var headerH2 = document.createElement("h2");
+
+                divCardHeader.appendChild(headerH2);
+
+
+                //Button H2
+                var buttonH2 = document.createElement("button");
+                buttonH2.setAttribute('class', 'btn btn-link btn-block text-left');
+                buttonH2.setAttribute('type', 'button');
+                buttonH2.setAttribute('data-toggle', 'collapse');
+                buttonH2.setAttribute('data-target', '#collapseOne'+i);
+                buttonH2.setAttribute('aria-expanded', 'true');
+                buttonH2.setAttribute('aria-controls', 'collapseOne');
+                buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
+
+                fecha = formatearFecha(response.data[0].comentarios[i].created_at);
+
+                //Control de Tipo de Comentario o Detalle
+                if(response.data[0].comentarios[i].id_estado == 1){
+                    buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 4){
+                    buttonH2.innerHTML = 'Detalle Diagnóstico Finalizado ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 5){
+                    buttonH2.innerHTML = 'Detalle Inicio Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+                }
+
+                if(response.data[0].comentarios[i].id_estado == 8){
+                    buttonH2.innerHTML = 'Detalle Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+                }
+
+                headerH2.appendChild(buttonH2);
+
+                //divCollapse
+                var divCollapse = document.createElement("div");
+                divCollapse.setAttribute('data-collapse', '#mycard-collapse')
+                divCollapse.setAttribute('id', 'collapseOne'+i)
+                divCollapse.setAttribute('class', 'collapse')
+                divCollapse.setAttribute('aria-labelledby', 'headingOne')
+                divCollapse.setAttribute('data-parent', '#accordionExample')
+
+                divCard.appendChild(divCollapse);
+
+                //div Card-Body
+                var divCardBody = document.createElement("div");
+                divCardBody.setAttribute('class', 'card-body')
+                divCardBody.innerHTML = response.data[0].comentarios[i].descripcion;
+
+                divCollapse.appendChild(divCardBody);
+
+                //Div Colapsable card-footer
+                var divCardFooter = document.createElement("div");
+                divCardFooter.setAttribute('class', 'card-footer');
+                divCardFooter.innerHTML = 'Escrito por:'
+
+                divCollapse.appendChild(divCardFooter);
+
+                //Parrafo card-footer
+
+                var pCardFooter = document.createElement("p");
+                pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
+                pCardFooter.innerHTML = response.data[0].comentarios[i].lastname + ' ' + response.data[0].comentarios[i].name;
+
+                divCardFooter.appendChild(pCardFooter);
+
+                }
+                } else {
+                //Div hermano.
+                var divRowBro = document.getElementById('divRowBro').parentNode;
+
+                //Div Accordion.
+                var divAccordion = document.createElement("div");
+                divAccordion.setAttribute('class', 'accordion');
+                divAccordion.setAttribute('style', 'margin-top:15px;');
+                divAccordion.setAttribute('id', 'accordionExample');
+
+                divRowBro.insertBefore(divAccordion, divAccordion.nextSibling);
+
                 //Div Card
                 var divCard = document.createElement("div");
                 divCard.setAttribute('class', 'card');
@@ -663,9 +780,9 @@
                 buttonH2.setAttribute('aria-controls', 'collapseOne');
                 buttonH2.setAttribute('style', 'color:#6777ef; padding-left:0px; font-size: 1rem;');
 
-                //Control de Tipo de Comentario o Detalle
-                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + response.data[0].comentario.created_at + '<p>';
-        
+                fecha = formatearFecha(response.data[0].comentarios.created_at);
+
+                buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
 
                 headerH2.appendChild(buttonH2);
 
@@ -682,7 +799,7 @@
                 //div Card-Body
                 var divCardBody = document.createElement("div");
                 divCardBody.setAttribute('class', 'card-body')
-                divCardBody.innerHTML = response.data[0].comentario.descripcion;
+                divCardBody.innerHTML = response.data[0].comentarios.descripcion;
 
                 divCollapse.appendChild(divCardBody);
 
@@ -697,12 +814,11 @@
 
                 var pCardFooter = document.createElement("p");
                 pCardFooter.setAttribute('style', 'font-size: 1rem; font-weight: bold; margin-bottom: 0px')
-                pCardFooter.innerHTML = response.data[0].comentario.lastname + ' ' + response.data[0].comentario.name;
+                pCardFooter.innerHTML = response.data[0].comentarios.lastname + ' ' + response.data[0].comentarios.name;
 
                 divCardFooter.appendChild(pCardFooter);
 
-                
-                }     
+                }
             
             },
             error: function(){

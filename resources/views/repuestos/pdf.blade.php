@@ -75,7 +75,6 @@
             <thead>
                
                 <tr>
-                    <th>Serie</th>
                     <th>Modelo</th>
                     <th>Tipo</th>
                     <th>Marca</th>
@@ -88,7 +87,6 @@
            <tbody>
              @foreach($repuestos as $repuesto)
               <tr>
-                  <td>{{$repuesto->serie}}</td>
                   <td>{{$repuesto->modelo}}</td>
                   <td>{{$repuesto->tiporepuesto->nombre}}</td>
                   <td>{{$repuesto->marca->nombre}}</td>

@@ -10,11 +10,11 @@ class WhatsappController extends Controller
 {
     public function bienvenida(){
     //TOKEN QUE NOS DA FACEBOOK
-    $token = 'EABWfGlT9ZCxIBAN6A9Ar8nXn9oB9IWfJTBkcTE7vSRcbx3UCiT7xREVZCKvEY7jE4TUN0LG9sKZCQ5erZAbGNelw6uzZA9TfxXKGyIkWwZA7z8cTJnGQXsmgZAQgbg6Njl4YEc5QS5jTHpo6CdAEFNs8xhCZCvRSxTlqCJ8tCGq1t2Qe5bMcIQR5UtH8NbJAPMVd4TjodijGNgZDZD';
+    $token = 'EABWfGlT9ZCxIBAOlJPxdRUXnNWQ1ddjp0av2vuLuNM8vkQ1LMmxjZAfIbQFW2rPAnu0eoi7Cqj7VHmhzZCwsGKjbKhYKr6sabE67VNMx4ZAis25SYFqaOBacr9vHmsdk4coispNVGOPfeBE1tX4GrZA5PWiYOUQEAjT9TfsyykhjMIRSm8yH3e1pspw3zosJaGJZCNbdyhEwZDZD';
     //NUESTRO TELEFONO
     $telefono = '543758484995';
     //URL A DONDE SE MANDARA EL MENSAJE
-    $url = 'https://graph.facebook.com/v15.0/113287718350861/messages';
+    $url = 'https://graph.facebook.com/v16.0/113287718350861/messages';
 
     //CONFIGURACION DEL MENSAJE
     $mensaje = ''
@@ -48,11 +48,11 @@ class WhatsappController extends Controller
 
     public function mensajePersonalizado($numero, $mensaje){
         //TOKEN QUE NOS DA FACEBOOK
-        $token = 'EABWfGlT9ZCxIBAN6A9Ar8nXn9oB9IWfJTBkcTE7vSRcbx3UCiT7xREVZCKvEY7jE4TUN0LG9sKZCQ5erZAbGNelw6uzZA9TfxXKGyIkWwZA7z8cTJnGQXsmgZAQgbg6Njl4YEc5QS5jTHpo6CdAEFNs8xhCZCvRSxTlqCJ8tCGq1t2Qe5bMcIQR5UtH8NbJAPMVd4TjodijGNgZDZD';
+        $token = 'EABWfGlT9ZCxIBAOlJPxdRUXnNWQ1ddjp0av2vuLuNM8vkQ1LMmxjZAfIbQFW2rPAnu0eoi7Cqj7VHmhzZCwsGKjbKhYKr6sabE67VNMx4ZAis25SYFqaOBacr9vHmsdk4coispNVGOPfeBE1tX4GrZA5PWiYOUQEAjT9TfsyykhjMIRSm8yH3e1pspw3zosJaGJZCNbdyhEwZDZD';
         //NUESTRO TELEFONO
         $telefono = $numero;
         //URL A DONDE SE MANDARA EL MENSAJE
-        $url = 'https://graph.facebook.com/v15.0/113287718350861/messages';
+        $url = 'https://graph.facebook.com/v16.0/113287718350861/messages';
         //CUERPO MENSAJE
         $body = $mensaje;
 
@@ -87,7 +87,7 @@ class WhatsappController extends Controller
     }
 
     public function getIdMediaPDF(){
-        $token = 'EABWfGlT9ZCxIBAN6A9Ar8nXn9oB9IWfJTBkcTE7vSRcbx3UCiT7xREVZCKvEY7jE4TUN0LG9sKZCQ5erZAbGNelw6uzZA9TfxXKGyIkWwZA7z8cTJnGQXsmgZAQgbg6Njl4YEc5QS5jTHpo6CdAEFNs8xhCZCvRSxTlqCJ8tCGq1t2Qe5bMcIQR5UtH8NbJAPMVd4TjodijGNgZDZD';
+        $token = 'EABWfGlT9ZCxIBAOlJPxdRUXnNWQ1ddjp0av2vuLuNM8vkQ1LMmxjZAfIbQFW2rPAnu0eoi7Cqj7VHmhzZCwsGKjbKhYKr6sabE67VNMx4ZAis25SYFqaOBacr9vHmsdk4coispNVGOPfeBE1tX4GrZA5PWiYOUQEAjT9TfsyykhjMIRSm8yH3e1pspw3zosJaGJZCNbdyhEwZDZD';
         $phoneId = '113287718350861';
         $target= public_path('assets\pdf\terminosycondiciones.pdf');
         $filename = basename($target);
@@ -99,7 +99,7 @@ class WhatsappController extends Controller
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://graph.facebook.com/v15.0/'.$phoneId.'/media',
+            CURLOPT_URL => 'https://graph.facebook.com/v16.0/'.$phoneId.'/media',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
@@ -123,8 +123,8 @@ class WhatsappController extends Controller
     }
 
     public function envioPDF($numero){
-        $url = 'https://graph.facebook.com/v15.0/113287718350861/messages';
-        $token = 'EABWfGlT9ZCxIBAN6A9Ar8nXn9oB9IWfJTBkcTE7vSRcbx3UCiT7xREVZCKvEY7jE4TUN0LG9sKZCQ5erZAbGNelw6uzZA9TfxXKGyIkWwZA7z8cTJnGQXsmgZAQgbg6Njl4YEc5QS5jTHpo6CdAEFNs8xhCZCvRSxTlqCJ8tCGq1t2Qe5bMcIQR5UtH8NbJAPMVd4TjodijGNgZDZD';
+        $url = 'https://graph.facebook.com/v16.0/113287718350861/messages';
+        $token = 'EABWfGlT9ZCxIBAOlJPxdRUXnNWQ1ddjp0av2vuLuNM8vkQ1LMmxjZAfIbQFW2rPAnu0eoi7Cqj7VHmhzZCwsGKjbKhYKr6sabE67VNMx4ZAis25SYFqaOBacr9vHmsdk4coispNVGOPfeBE1tX4GrZA5PWiYOUQEAjT9TfsyykhjMIRSm8yH3e1pspw3zosJaGJZCNbdyhEwZDZD';
         $infoGeneral = InformacionGeneral::get()->first();
         $mediaId = $infoGeneral->mediaid;
         $telefono = $numero;

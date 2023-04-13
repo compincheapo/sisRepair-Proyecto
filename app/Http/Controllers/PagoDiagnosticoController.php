@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use PDF;
 use App\Models\InformacionGeneral;
+use App\Notifications\RegistrarPagoNotification;
 
 
 class PagoDiagnosticoController extends Controller
@@ -256,9 +257,12 @@ class PagoDiagnosticoController extends Controller
         ]);
         
         $precioPagoDiagnostico = 0;
+        $ordenes = [];
         foreach ($equipos as $equipo) {
             $orden = Equipo::findOrfail($equipo)->orden()->where('finalizado', 1)->where('id_servicio', 1)->orderBy('ordenesservicio.created_at', 'desc')
-            ->first();         
+            ->first();
+            
+            $ordenes = $orden;
 
             DB::table('ordenservicios_pagos')->insert([
                 'id_orden' => $orden->id,

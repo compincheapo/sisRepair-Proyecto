@@ -1,8 +1,9 @@
 <aside id="sidebar-wrapper bg-primary">
     <div class="sidebar-brand">
+        <a href="{{ url('/') }}">
         <img class="navbar-brand-full app-header-logo" src="{{ asset('img/logo.png') }}" width="65"
              alt="Infyom Logo">
-        <a href="{{ url('/') }}"></a>
+        </a>
     </div>
     <div class="sidebar-brand sidebar-brand-sm">
         <a href="{{ url('/') }}" class="small-sidebar-text">

@@ -164,8 +164,6 @@ class EquipoController extends Controller
 
     public function create()
     {
-        // $equipo = Equipo::findOrfail(4);
-        // dd($equipo->orden()->where('finalizado', 0)->get());
         $tiposequipo = TipoEquipo::pluck('nombre', 'id');
         $marcas = Marca::pluck('nombre', 'id');
 
@@ -174,12 +172,8 @@ class EquipoController extends Controller
                     $q->whereIn("name", ['cliente']);
                      })->select('id', 'name', 'lastname')->get();
         
-        //dd($usuarios);
         $estantes = Estante::select('nombre', 'id')->get();
-        //dd($estantes);
         $tiposaccesorios = TipoAccesorio::select('nombre', 'id')->get();
-
-        //dd($tiposequipo);
 
         return view('equipos.create', compact('tiposequipo', 'marcas', 'usuarios', 'estantes', 'tiposaccesorios'));
     }
@@ -187,10 +181,9 @@ class EquipoController extends Controller
 
     public function store(Request $request)
     {
-        //dd($request->all());
         //Validaciones Equipo.
         $this->validate($request, [
-            'serie' => 'unique:equipos,serie',
+            'serie' => 'nullable',
             'tipoequipo' => 'required',
             'marca' => 'required',
             'usuario' => 'required',
@@ -242,14 +235,28 @@ class EquipoController extends Controller
 
     public function update(Request $request, $id)
     {
+        //Validaciones Equipo.
         $this->validate($request, [
-            'nombre' => 'required',
+            'serie' => 'nullable',
+            'tipoequipo' => 'required',
+            'marca' => 'required',
+            'estante' => 'required',
+            'seccion' => 'required',
         ]);
 
         $input = $request->all();
 
         $equipo = Equipo::find($id);
         $equipo->update($input);
+
+        $equipo->accesorios()->detach(); 
+
+        //Asociación de Accesorios al Equipo.
+        if($request->accesorios && isset($request->accesorios)){
+            foreach ($request->accesorios as $accesorio) {
+                $equipo->accesorios()->attach($accesorio); 
+            }
+        }
 
         return redirect()->route('equipos.index');
     }
@@ -1021,6 +1028,45 @@ class EquipoController extends Controller
         }
         
         return redirect()->route('verRegistrarRetiro');
+    }
+
+    public function getEquiposDiagnostico()
+    {
+        $equipos = Equipo::select('id', 'serie', 'modelo', 'id_marca', 'id_user')->with('marca:id,nombre','user:id,name')->get();
+
+        foreach ($equipos as $key => $value) {
+            $ordenEquipo = Equipo::findOrfail($value->id)->orden()->where('finalizado', 0)->first();
+            if($ordenEquipo != null){
+                $ultimoEstado = $ordenEquipo->estados()->first();
+                if($ultimoEstado->id != 1){
+                    unset($equipos[$key]);
+                    
+                } else {
+                    $value->fechaCompromiso = $ordenEquipo->fechacompromiso;
+
+                    $fechaIngreso = DB::table('equipos')
+                    ->select('equipos_estados_users_ordenes.created_at')
+                    ->join('equipos_estados_users_ordenes', 'equipos.id', 'equipos_estados_users_ordenes.id_equipo')
+                    ->where('equipos.id', $value->id)
+                    ->orderBy('equipos_estados_users_ordenes.created_at', 'desc')
+                    ->first();
+
+                    
+
+                    $value->fechaIngreso =  Carbon::parse($fechaIngreso->created_at)->format('d-m-Y H:i:s');
+
+                }
+            } else {
+                unset($equipos[$key]);
+            }
+        }
+        
+         return DataTables()->collection($equipos)->addColumn('action', function($row){
+            return '
+            <a href="#" class="btn-sm btn btn-warning detBtn" data-id="'.$row->id.'">Detalle</a>';
+        })
+        ->rawColumns(['action'])
+        ->toJson();  
     }
 
 }

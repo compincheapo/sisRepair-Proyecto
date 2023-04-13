@@ -23,10 +23,6 @@
                         <form class="form" action="{{ route('repuestos.index')}}" method="GET">
                         <div class="row">
                         <div class="form-group col-md-6">
-                                <label for="serie">Serie</label>
-                                <input type="text" class="form-control" id="serie" name="serie" value="{{$serieData}}">
-                        </div>
-                        <div class="form-group col-md-6">
                                 <label for="modelo">Modelo</label>
                                 <input type="text" class="form-control" id="modelo" name="modelo" value="{{$modeloData}}">
                         </div>
@@ -90,7 +86,6 @@
                             <table class="table table-striped mt-2">
                                 <thead style="background-color: #6777ef;">
                                     <th style="display:none;">ID</th>
-                                    <th style="color: #fff;">Serie</th>
                                     <th style="color: #fff;">Modelo</th>
                                     <th style="color: #fff;">Tipo</th>
                                     <th style="color: #fff;">Marca</th>
@@ -104,7 +99,6 @@
                                     @foreach($repuestos as $repuesto)
                                         <tr>
                                             <td style="display:none">{{$repuesto->id}}</td>
-                                            <td>{{$repuesto->serie}}</td>
                                             <td>{{$repuesto->modelo}}</td>
                                             <td>{{$repuesto->tiporepuesto->nombre}}</td>
                                             <td>{{$repuesto->marca->nombre}}</td>
@@ -130,7 +124,7 @@
                                 </tbody>
                             </table>
                             <div class="pagination justify-content-end">
-                                {!! $repuestos->appends(['marca' => $marcaData, 'tiporepuesto' => '$tiporepuestoData', 'estante' => '$estanteData', 'serie' => $serieData, 'modeloData' => $modeloData])->links() !!}
+                                {!! $repuestos->appends(['marca' => $marcaData, 'tiporepuesto' => '$tiporepuestoData', 'estante' => '$estanteData', 'modeloData' => $modeloData])->links() !!}
                             </div>
                         </div>
                     @endcan   

@@ -49,7 +49,7 @@
                             <div class="step" data-target="#test-l-3">
                                 <button type="button" class="btn step-trigger">
                                 <span class="bs-stepper-circle">3</span>
-                                <span class="bs-stepper-label">Asginación</span>
+                                <span class="bs-stepper-label">Asignación</span>
                                 </button>
                             </div>
                         </div>
@@ -67,7 +67,7 @@
                                                     <th>Modelo</th>
                                                     <th>Cliente</th>
                                                     <th>Fecha Ingreso</th>
-                                                    <th>Fecha Compromiso</th>
+                                                    <th>Fecha Estimada</th>
                                                     <th>Acciones</th>
                                                 </tr>
                                             </thead>

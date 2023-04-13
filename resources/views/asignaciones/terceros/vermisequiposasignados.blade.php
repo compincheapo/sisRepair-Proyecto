@@ -32,7 +32,6 @@
                                     </button>
                             </div>
                     @endif
-                    <div class="container">
                     <div class="table-responsive table-bordered">
                         <table id="example" class="display" style="width:100%">
                             <thead>
@@ -49,7 +48,6 @@
                             </thead>
                         </table>
                     </div>     
-                    </div>  
                     </div>
                     </div>
                             
@@ -121,12 +119,34 @@ $(document).ready(function() {
           {data: 'fechaRetiro'},
           {data: 'action', name: 'action', orderable: false, searchable:false}
       ],
+      'order': [[1, 'asc']],
+      "language": {
+          "info": "_TOTAL_ registros",
+          "search": "Buscar",
+          "paginate": {
+              "next": "Siguiente",
+              "previous": "Anterior",
+          },
+          "lengthMenu": 'Mostrar <select >'+
+                      '<option value="5">5</option>'+
+                      '<option value="10">10</option>'+
+                      '<option value="50">50</option>'+
+                      '<option value="100">100</option>'+
+                      '<option value="-1">Todos</option>'+
+                      '</select> registros',
+          "loadingRecords": "Cargando...",
+          "processing": "Procesando...",
+          "emptyTable": "No hay datos",
+          "zeroRecords": "No hay coincidencias", 
+          "infoEmpty": "",
+          "infoFiltered": ""
+      }
   } );
 
   $('body').on('click', '.detBtn', function (){
 
   var id = $(this).data('id');
-  var url = '{{route("diagnosticoasignado", ":id")}}';
+  var url = '{{route("getAsignacionEquipoTercero", ":id")}}';
   url = url.replace(':id', id);
 
   $.ajax({
@@ -267,14 +287,10 @@ $(document).ready(function() {
           buttonH2.innerHTML = 'Detalle ingreso Equipo ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
         if(response.data[0].comentarios[i].id_estado == 4){
-          buttonH2.innerHTML = 'Detalle diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+          buttonH2.innerHTML = 'Detalle Diagnóstico ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
-        if(response.data[0].comentarios[i].id_estado == 10){
-          buttonH2.innerHTML = 'Detalle presupuesto ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
-        }
-
-        if(response.data[0].comentarios[i].id_estado == 9){
-          buttonH2.innerHTML = 'Detalle Reasignación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
+        if(response.data[0].comentarios[i].id_estado == 5){
+          buttonH2.innerHTML = 'Detalle Asignación Reparación ' + '<p style="color:black; display:inline; font-size:0.8rem">' + fecha + '<p>';
         }
 
         headerH2.appendChild(buttonH2);

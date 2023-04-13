@@ -138,7 +138,7 @@ body.sidebar-mini .main-sidebar:after {
             @endif
 
             @if(Auth::user()->getRoleNames()->first() == "Admin" || Auth::user()->getRoleNames()->first() == "Vendedor")
-                <hr style="margin-top:1px; margin-bottom:1px">
+                <hr style="margin-top:0.5px; margin-bottom:0.5px">
                 <li class="{{ Request::is('pagodiagnostico') ? 'active' : '' }}">
                     <a href="{{ url('/pagodiagnostico') }}" class="primario">Registrar Pago Diagnóstico </a>
                 </li>
@@ -186,6 +186,7 @@ body.sidebar-mini .main-sidebar:after {
                 <hr style="margin-top:0.5px; margin-bottom:0.5px">
             @endif 
             @if(Auth::user()->getRoleNames()->first() == "Tercero")
+                <hr style="margin-top:1px; margin-bottom:1px">
                 <li class="{{ Request::is('asignacion/vermisequiposasignados') ? 'active' : '' }}">
                     <a href="{{ url('/asignacion/vermisequiposasignados') }}" class="primario">Mis Asignaciones </a>
                 </li>

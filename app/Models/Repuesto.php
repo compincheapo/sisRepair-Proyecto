@@ -15,7 +15,6 @@ class Repuesto extends Model
 
     protected $fillable = [
         'nombre',
-        'serie',
         'modelo',
         'cantidad',   
         'precio',

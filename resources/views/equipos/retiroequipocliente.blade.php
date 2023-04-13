@@ -107,7 +107,7 @@
                                 </div>
                             </div>
                             <button class="btn btn-secondary mt-2" onclick="stepper1.previous(), event.preventDefault()">Anterior</button>
-                            <input type="submit" value="Asignar" class="btn btn-warning mt-2" id="enviar">
+                            <input type="submit" value="Registrar Retiro" class="btn btn-warning mt-2" id="enviar">
                         </div>
                     </div>
                    

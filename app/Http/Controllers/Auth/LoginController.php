@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -26,7 +28,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+    // protected $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.
@@ -42,5 +44,20 @@ class LoginController extends Controller
     {
         return 'username';
     }
+
+    protected function authenticated(Request $request, $user) {
+        $role = $user->roles->first()->name;
+        if ($role == 'Tercero') {
+            return redirect('/asignacion/vermisequiposasignados');
+        } else if ($role == 'Admin') {
+            return redirect('/home');
+        }  else if ($role == 'Cliente') {
+            return redirect('/equipos/misequiposdiagnostico');
+        }  else if ($role == 'Vendedor') {
+            return redirect('/usuarios');
+        } else if ($role == 'Tecnico') {
+            return redirect('/asignacion/vermisdiagnosticosasignados');
+        } 
+   }    
 
 }

@@ -26,7 +26,7 @@
             "success" =>  route('getResultadoPagoOrdenSatisfactoria', $orden->id),
             "failure" =>  route('getResultadoPagoOrdenFallo', $orden->id) ,
         );
-
+        $preference->statement_descriptor = $informacionGeneral->nombre;
         $preference->auto_return = "approved";
         $preference->binary_mode = true;
 

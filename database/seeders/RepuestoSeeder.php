@@ -15,7 +15,6 @@ class RepuestoSeeder extends Seeder
     public function run()
     {
         Repuesto::create([ 
-            'serie' => '123456789',
             'modelo' => 'MA1300',
             'cantidad' => 10,
             'precio' => 5000,

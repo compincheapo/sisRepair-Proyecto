@@ -31,7 +31,6 @@ class RepuestoController extends Controller
         $estanteData = null;
         $marcaData = null;
         $tiporepuestoData = null;
-        $serieData = $request->serie;
         $modeloData = $request->modelo;
 
         if($request->marca){
@@ -46,7 +45,7 @@ class RepuestoController extends Controller
             $estanteData = Estante::where('id', $request->estante)->select('id', 'nombre')->first();
         } 
 
-        if($request->marca ||  $request->tiporepuesto || $request->estante || $request->serie || $request->modelo){
+        if($request->marca ||  $request->tiporepuesto || $request->estante || $request->modelo){
             $repuestos = Repuesto::join('seccionesestante', 'repuestos.id_seccionestante', 'seccionesestante.id')
             ->select('repuestos.*')
             ->when($request->filled('marca'), function ($query) use ($request) {
@@ -55,8 +54,6 @@ class RepuestoController extends Controller
                 return $query->where('repuestos.id_tiporepuesto', $request->tiporepuesto);
             })->when($request->filled('estante'), function ($query) use ($request) {
                 return $query->where('seccionesestante.id_estante', $request->estante);
-            })->when($request->filled('serie'), function ($query) use ($request) {
-                return $query->where('repuestos.serie', $request->serie);
             })->when($request->filled('modelo'), function ($query) use ($request) {
                 return $query->where('repuestos.modelo', $request->modelo);
             })->paginate(5);
@@ -127,10 +124,10 @@ class RepuestoController extends Controller
             $pdf = PDF::loadView('repuestos.pdf', compact('repuestos', 'filtrado'));
             return $pdf->stream();
         } elseif($request->submitbtn == 'Filtrar'){
-            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'serieData', 'modeloData'));
+            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'modeloData'));
         } elseif($request->submitbtn == null){
             $repuestos = Repuesto::paginate(5);
-            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'serieData', 'modeloData'));
+            return view('repuestos.index', compact('repuestos', 'estantes', 'marcas', 'tiporepuestos', 'estanteData', 'marcaData', 'tiporepuestoData', 'modeloData'));
         }
         
 
@@ -154,7 +151,6 @@ class RepuestoController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'serie' => 'unique:repuestos,serie',
             'modelo' => 'required',
             'cantidad' => 'required',
             'precio' => 'required',
@@ -169,7 +165,6 @@ class RepuestoController extends Controller
         $input = $request; 
 
         $repuesto = new Repuesto;
-        $repuesto->serie = $input->get('serie');
         $repuesto->cantidad = $input->get('cantidad');
         $repuesto->precio = $input->get('precio');
         $repuesto->modelo = $input->get('modelo');
@@ -194,15 +189,12 @@ class RepuestoController extends Controller
         $estantes = Estante::select('nombre', 'id')->get();
         $estante = SeccionesEstante::findOrfail($repuesto->id_seccionestante)->where('id', $repuesto->id_seccionestante)->first();
 
-        // $userRole = $user->roles->pluck('name', 'name')->all();
-
         return view('repuestos.edit', compact('repuesto', 'tiposrepuestos', 'tiporepuesto', 'marcas', 'marca', 'estantes', 'estante'));
     }
 
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'serie' => 'required',              //Verificar que al editar no se repita el número de serie con el id actual dado.
             'modelo' => 'required',
             'tiporepuesto' => 'required',
             'cantidad' => 'required',
@@ -213,7 +205,6 @@ class RepuestoController extends Controller
         ]);        
 
         $repuesto = Repuesto::find($id);
-        $repuesto->serie = $request->get('serie');
         $repuesto->modelo = $request->get('modelo');
         $repuesto->id_tiporepuesto = $request->get('tiporepuesto');
         $repuesto->cantidad = $request->get('cantidad');
@@ -238,12 +229,11 @@ class RepuestoController extends Controller
     }
 
     public function getRepuestosReparacion(){
-        //$repuestos = Repuesto::where('cantidad', '>=', 1)->with('marca:id,nombre', 'seccionEstante', 'tiporepuesto')->get(['id', 'serie', 'modelo']);
 
         $repuestos =  Repuesto::where('cantidad', '>=', 1)->with(['marca', 'seccionEstante', 'tiporepuesto', 'seccionEstante.estante' => function ($query) {
             $query->select('id', 'nombre');
         }])
-        ->select('id', 'serie', 'modelo', 'cantidad', 'id_marca', 'id_seccionestante', 'id_tiporepuesto')
+        ->select('id', 'modelo', 'cantidad', 'id_marca', 'id_seccionestante', 'id_tiporepuesto')
         ->get();
 
 
